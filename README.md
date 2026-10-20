@@ -6,7 +6,7 @@
 
 **Je Home Assistant-dashboard als echte desktop-app — met meldingen op je bureaublad.**
 
-[![Download](https://img.shields.io/github/v/release/Svenvdp21/ha-desktop?label=download&style=for-the-badge&color=18BCF2)](../../releases/latest)
+[![Download](https://img.shields.io/badge/download-RPM-18BCF2?style=for-the-badge&logo=homeassistant&logoColor=white)](../../releases/latest)
 ![Fedora](https://img.shields.io/badge/Fedora-44-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
 ![Qt](https://img.shields.io/badge/Qt-PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 
