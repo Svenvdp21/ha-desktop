@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Home Assistant
+GenericName=Smart-home-dashboard
+Comment=Je Home Assistant-dashboard als desktop-app, met meldingen
+Exec=ha-desktop %U
+Icon=com.nordicnode.HADesktop
+Terminal=false
+Categories=Utility;
+Keywords=Home Assistant;smart home;domotica;hass;
+StartupWMClass=ha-desktop
+SingleMainWindow=true
