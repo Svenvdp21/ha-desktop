@@ -58,6 +58,9 @@ desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 
 %changelog
+* Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.2.1-1
+- Groter icoon (logo zonder extra marges)
+
 * Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.2.0-1
 - Engels en Nederlands; taal volgt het systeem
 
