@@ -15,6 +15,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QMessageBox, QWidget
 
 from ha_desktop.config import Config, cache_dir, data_dir
+from ha_desktop.i18n import _
 
 # Rechten die we aan de eigen server geven: meldingen en microfoon (Assist).
 _GRANTED = {
@@ -112,7 +113,7 @@ class HaView(QWebEngineView):
     def contextMenuEvent(self, event) -> None:
         menu = self.createStandardContextMenu()
         menu.addSeparator()
-        settings = QAction("Instellingen…", menu)
+        settings = QAction(_("Settings…"), menu)
         settings.triggered.connect(self.settings_requested)
         menu.addAction(settings)
         menu.exec(event.globalPos())
@@ -125,9 +126,9 @@ class HaView(QWebEngineView):
             self.load_failed.emit(info.errorString())
         elif info.errorDomain() == D.HttpErrorDomain and info.errorCode() >= 500:
             # Bijv. 502 van een reverse proxy terwijl HA herstart.
-            self.load_failed.emit(f"De server gaf foutcode {info.errorCode()}.")
+            self.load_failed.emit(_("The server returned error code {code}.").format(code=info.errorCode()))
 
     def _on_crash(self, status, code) -> None:
         if status != QWebEnginePage.RenderProcessTerminationStatus.NormalTerminationStatus:
-            QMessageBox.warning(self, "Pagina gecrasht", "De weergave is vastgelopen en wordt opnieuw geladen.")
+            QMessageBox.warning(self, _("Page crashed"), _("The page crashed and will be reloaded."))
             self.reload()

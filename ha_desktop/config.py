@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from ha_desktop import APP_ID, APP_NAME
+from ha_desktop.i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -97,17 +98,17 @@ def normalize_url(text: str) -> list[str]:
     """
     text = text.strip()
     if not text:
-        raise ValueError("Vul het adres van je Home Assistant-server in.")
+        raise ValueError(_("Enter the address of your Home Assistant server."))
     has_scheme = "://" in text
     parts = urlsplit(text if has_scheme else f"http://{text}")
     if parts.scheme not in ("http", "https"):
-        raise ValueError("Het adres moet met http:// of https:// beginnen.")
+        raise ValueError(_("The address must start with http:// or https://."))
     if not parts.hostname:
-        raise ValueError("Dit lijkt geen geldig adres.")
+        raise ValueError(_("This doesn't look like a valid address."))
     try:
         parts.port
     except ValueError:
-        raise ValueError("Het poortnummer is ongeldig.") from None
+        raise ValueError(_("The port number is invalid.")) from None
     netloc = parts.netloc.rsplit("@", 1)[-1]
     if has_scheme:
         return [f"{parts.scheme}://{netloc}"]
@@ -157,7 +158,7 @@ class TokenStore:
             try:
                 self._secret.password_store_sync(
                     self._schema, {"server": server}, self._secret.COLLECTION_DEFAULT,
-                    f"{APP_NAME}-token voor {server}", token, None,
+                    f"{APP_NAME} token ({server})", token, None,
                 )
                 self._remove_from_file(server)
                 return

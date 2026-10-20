@@ -15,6 +15,7 @@ from PySide6.QtNetwork import QAbstractSocket
 from PySide6.QtWebSockets import QWebSocket
 
 from ha_desktop.config import Config
+from ha_desktop.i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -140,7 +141,7 @@ class PushClient(QObject):
             })
         elif kind == "auth_invalid":
             self._running = False
-            self._set_state("error", "Token geweigerd door Home Assistant. Maak een nieuw token aan.")
+            self._set_state("error", _("Home Assistant rejected the token. Create a new token."))
             if self._ws:
                 self._ws.close()
         elif kind == "result" and msg.get("id") == self._sub_id:
@@ -151,8 +152,8 @@ class PushClient(QObject):
             else:
                 self._running = False
                 err = (msg.get("error") or {}).get("message", "onbekende fout")
-                self._set_state("error", f"Abonneren op meldingen mislukt: {err}. "
-                                         "Schakel meldingen opnieuw in om dit apparaat te registreren.")
+                self._set_state("error", _("Subscribing to notifications failed: {error}. Turn notifications "
+                                           "on again to register this device.").format(error=err))
                 if self._ws:
                     self._ws.close()
         elif kind == "pong" and msg.get("id") == self._ping_id:
@@ -185,5 +186,5 @@ class PushClient(QObject):
         delay = min(MAX_BACKOFF_S, 2 ** self._attempt)
         self._attempt += 1
         reason = self._ws.errorString() if self._ws else ""
-        self._set_state("disconnected", f"Verbinding verbroken; opnieuw proberen over {delay} s. {reason}".strip())
+        self._set_state("disconnected", f"{_('Connection lost; retrying in {delay} s.').format(delay=delay)} {reason}".strip())
         self._reconnect.start(delay * 1000)

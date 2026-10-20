@@ -12,6 +12,7 @@ from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequ
 
 from ha_desktop import APP_ID, APP_NAME, __version__
 from ha_desktop.config import Config
+from ha_desktop.i18n import _
 
 TIMEOUT_MS = 8000
 
@@ -68,21 +69,21 @@ class HaApi(QObject):
         err = reply.error()
         E = QNetworkReply.NetworkError
         if err in (E.HostNotFoundError,):
-            return "Server niet gevonden. Controleer het adres."
+            return _("Server not found. Check the address.")
         if err in (E.ConnectionRefusedError,):
-            return "Verbinding geweigerd. Klopt de poort (meestal 8123)?"
+            return _("Connection refused. Is the port correct (usually 8123)?")
         if err in (E.TimeoutError, E.OperationCanceledError):
-            return "De server reageert niet (time-out)."
+            return _("The server is not responding (timeout).")
         if err == E.SslHandshakeFailedError:
-            return "Beveiligde verbinding mislukt."
-        return f"Verbinding mislukt: {reply.errorString()}"
+            return _("Secure connection failed.")
+        return _("Connection failed: {error}").format(error=reply.errorString())
 
     def probe(self, base_url: str, callback: Callable[[Result], None]) -> None:
         """Controleer of er op base_url een Home Assistant-server draait."""
 
         def handle(reply: QNetworkReply, cert_failed: bool) -> None:
             if cert_failed:
-                callback(Result(False, "Het certificaat van deze server wordt niet vertrouwd.",
+                callback(Result(False, _("This server's certificate is not trusted."),
                                 cert_host=reply.url().host()))
                 return
             status = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
@@ -98,7 +99,7 @@ class HaApi(QObject):
             if status == 200 and isinstance(providers, list):
                 callback(Result(True))
             else:
-                callback(Result(False, "Er reageert een server, maar het lijkt geen Home Assistant te zijn."))
+                callback(Result(False, _("A server responded, but it doesn't look like Home Assistant.")))
 
         self._send("GET", f"{base_url}/auth/providers", handle)
 
@@ -124,15 +125,15 @@ class HaApi(QObject):
         def handle(reply: QNetworkReply, cert_failed: bool) -> None:
             status = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
             if cert_failed:
-                callback(Result(False, "Het certificaat van de server wordt niet vertrouwd.",
+                callback(Result(False, _("This server's certificate is not trusted."),
                                 cert_host=reply.url().host()))
             elif status == 401:
-                callback(Result(False, "Het token is ongeldig of verlopen."))
+                callback(Result(False, _("The token is invalid or has expired.")))
             elif status == 404:
-                callback(Result(False, "De integratie 'Mobile App' is niet actief in Home Assistant."))
+                callback(Result(False, _("The 'Mobile App' integration is not enabled in Home Assistant.")))
             elif status not in (200, 201):
                 callback(Result(False, self._network_error(reply) if not status
-                                else f"Registratie mislukt (HTTP {status})."))
+                                else _("Registration failed (HTTP {status}).").format(status=status)))
             else:
                 try:
                     data = json.loads(bytes(reply.readAll().data()))
@@ -141,6 +142,6 @@ class HaApi(QObject):
                 if data.get("webhook_id"):
                     callback(Result(True, data=data))
                 else:
-                    callback(Result(False, "Onverwacht antwoord van Home Assistant."))
+                    callback(Result(False, _("Unexpected response from Home Assistant.")))
 
         self._send("POST", f"{base_url}/api/mobile_app/registrations", handle, body=body, token=token)

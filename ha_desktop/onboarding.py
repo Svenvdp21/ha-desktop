@@ -20,26 +20,26 @@ from PySide6.QtWidgets import (
 from ha_desktop import APP_NAME
 from ha_desktop.config import Config, normalize_url
 from ha_desktop.haapi import HaApi, Result
+from ha_desktop.i18n import N_, _
 from ha_desktop.resources import app_icon
 
-TOKEN_HELP = (
-    "Meldingen werken via een <b>long-lived access token</b>. Maak er een aan in "
-    "Home Assistant via <i>je profiel → Beveiliging → Langlevende toegangstokens → "
-    "Token aanmaken</i> en plak het hieronder."
+TOKEN_HELP = N_(
+    "Notifications use a <b>long-lived access token</b>. Create one in Home Assistant via "
+    "<i>your profile → Security → Long-lived access tokens → Create token</i> (at the bottom "
+    "of the page) and paste it below."
 )
-DEVICE_HELP = (
-    "Deze computer verschijnt daarna in Home Assistant als apparaat, en je kunt "
-    "meldingen sturen met de actie <code>notify.mobile_app_&lt;naam&gt;</code>."
+DEVICE_HELP = N_(
+    "This computer then shows up in Home Assistant as a device, and you can send notifications "
+    "with the action <code>notify.mobile_app_&lt;name&gt;</code>."
 )
 
 
 def ask_trust_certificate(parent: QWidget, host: str) -> bool:
     answer = QMessageBox.warning(
         parent,
-        "Onbekend certificaat",
-        f"Het beveiligingscertificaat van <b>{host}</b> wordt niet vertrouwd "
-        "(bijvoorbeeld omdat het zelf ondertekend is).<br><br>"
-        "Vertrouw het alleen als dit je eigen server is. Toch verbinden?",
+        _("Unknown certificate"),
+        _("The security certificate of <b>{host}</b> is not trusted (for example because it is "
+          "self-signed).<br><br>Only trust it if this is your own server. Connect anyway?").format(host=host),
         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         QMessageBox.StandardButton.No,
     )
@@ -89,16 +89,16 @@ class TokenForm(QWidget):
         self.config, self.api, self.tokens = config, api, tokens
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.token = QLineEdit(placeholderText="Plak hier je token")
+        self.token = QLineEdit(placeholderText=_("Paste your token here"))
         self.token.setEchoMode(QLineEdit.EchoMode.Password)
-        self.device = QLineEdit(config.device_name, placeholderText="Naam van deze computer")
+        self.device = QLineEdit(config.device_name, placeholderText=_("Name of this computer"))
         self.status = _wrap("")
         self.status.hide()
         self.busy = QProgressBar(maximum=0, textVisible=False, maximumHeight=6)
         self.busy.hide()
-        layout.addWidget(QLabel("Toegangstoken"))
+        layout.addWidget(QLabel(_("Access token")))
         layout.addWidget(self.token)
-        layout.addWidget(QLabel("Apparaatnaam in Home Assistant"))
+        layout.addWidget(QLabel(_("Device name in Home Assistant")))
         layout.addWidget(self.device)
         layout.addWidget(self.busy)
         layout.addWidget(self.status)
@@ -106,11 +106,11 @@ class TokenForm(QWidget):
     def submit(self) -> None:
         token = self.token.text().strip() or self.tokens.get(self.config.server_url)
         if not token:
-            self._error("Vul eerst een token in.")
+            self._error(_("Enter a token first."))
             return
         name = self.device.text().strip()
         if not name:
-            self._error("Geef deze computer een naam.")
+            self._error(_("Give this computer a name."))
             return
         if name != self.config.device_name or token != self.tokens.get(self.config.server_url):
             # Nieuwe naam of nieuw token: opnieuw registreren.
@@ -172,7 +172,7 @@ class Onboarding(QWidget):
         logo.setPixmap(app_icon().pixmap(72, 72))
         self.url = QLineEdit(placeholderText="http://homeassistant.local:8123")
         self.url.returnPressed.connect(self._connect)
-        self.connect_btn = QPushButton("Verbinden")
+        self.connect_btn = QPushButton(_("Connect"))
         self.connect_btn.setDefault(True)
         self.connect_btn.clicked.connect(self._connect)
         self.server_busy = QProgressBar(maximum=0, textVisible=False, maximumHeight=6)
@@ -186,11 +186,11 @@ class Onboarding(QWidget):
         row.setLayout(buttons)
         return _card(
             logo,
-            _title(f"Welkom bij {APP_NAME}"),
-            _wrap("Vul het adres van je Home Assistant-server in. Dat is meestal "
-                  "<code>http://homeassistant.local:8123</code>, het IP-adres van je server "
-                  "met poort 8123, of je externe adres (bijv. Nabu Casa)."),
-            QLabel("Serveradres"),
+            _title(_("Welcome to {app}").format(app=APP_NAME)),
+            _wrap(_("Enter the address of your Home Assistant server. This is usually "
+                    "<code>http://homeassistant.local:8123</code>, your server's IP address with port 8123, "
+                    "or your external address (e.g. Home Assistant Link).")),
+            QLabel(_("Server address")),
             self.url,
             self.server_busy,
             self.server_status,
@@ -254,9 +254,9 @@ class Onboarding(QWidget):
         self.token_form = TokenForm(self.config, self.api, self.tokens)
         self.token_form.registered.connect(self.finished)
         self.token_form.token.returnPressed.connect(self.token_form.submit)
-        skip = QPushButton("Overslaan")
+        skip = QPushButton(_("Skip"))
         skip.clicked.connect(self._skip)
-        enable = QPushButton("Meldingen inschakelen")
+        enable = QPushButton(_("Enable notifications"))
         enable.setDefault(True)
         enable.clicked.connect(self.token_form.submit)
         buttons = QHBoxLayout()
@@ -266,11 +266,11 @@ class Onboarding(QWidget):
         row = QWidget()
         row.setLayout(buttons)
         return _card(
-            _title("Meldingen ontvangen?"),
-            _wrap(TOKEN_HELP),
-            _wrap(DEVICE_HELP),
-            _wrap("<i>Nog geen token? Kies Overslaan, log eerst in en zet meldingen later "
-                  "aan via Instellingen (Ctrl+,).</i>"),
+            _title(_("Get notifications?")),
+            _wrap(_(TOKEN_HELP)),
+            _wrap(_(DEVICE_HELP)),
+            _wrap(_("<i>No token yet? Choose Skip, log in first and turn on notifications later in "
+                    "Settings (Ctrl+,).</i>")),
             self.token_form,
             row,
         )

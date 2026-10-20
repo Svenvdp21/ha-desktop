@@ -44,17 +44,22 @@ EOF
 install -Dm644 data/%{app_id}.desktop "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 install -Dm644 ha_desktop/data/%{app_id}.svg "%{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg"
 install -Dm644 README.md "%{buildroot}%{_docdir}/%{name}/README.md"
+install -Dm644 README.en.md "%{buildroot}%{_docdir}/%{name}/README.en.md"
 
 %check
 desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 
 %files
 %doc %{_docdir}/%{name}/README.md
+%doc %{_docdir}/%{name}/README.en.md
 %{_bindir}/ha-desktop
 %{python3_sitelib}/ha_desktop/
 %{_datadir}/applications/%{app_id}.desktop
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 
 %changelog
+* Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.2.0-1
+- Engels en Nederlands; taal volgt het systeem
+
 * Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.1.0-1
 - Eerste versie

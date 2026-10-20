@@ -22,13 +22,14 @@ from PySide6.QtWidgets import (
 
 from ha_desktop import APP_ID, APP_NAME
 from ha_desktop.config import Config, _xdg
+from ha_desktop.i18n import N_, _
 from ha_desktop.onboarding import DEVICE_HELP, TOKEN_HELP, TokenForm, _wrap
 
 STATE_TEXT = {
-    "connected": "<span style='color:#2a2'>● Verbonden — meldingen komen binnen</span>",
-    "connecting": "● Verbinden…",
-    "disconnected": "<span style='color:#c80'>● Niet verbonden</span>",
-    "error": "<span style='color:#d33'>● Fout</span>",
+    "connected": ("#2a2", N_("● Connected — notifications are coming in")),
+    "connecting": ("", N_("● Connecting…")),
+    "disconnected": ("#c80", N_("● Not connected")),
+    "error": ("#d33", N_("● Error")),
 }
 
 
@@ -67,36 +68,36 @@ class SettingsDialog(QDialog):
 
     def __init__(self, config: Config, api, tokens, push, tray_available: bool, parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle(f"Instellingen — {APP_NAME}")
+        self.setWindowTitle(_("Settings — {app}").format(app=APP_NAME))
         self.setMinimumWidth(520)
         self.config, self.tokens, self.push = config, tokens, push
         layout = QVBoxLayout(self)
 
         # Server
-        server = QGroupBox("Server")
+        server = QGroupBox(_("Server"))
         row = QHBoxLayout(server)
         row.addWidget(QLabel(f"<b>{config.server_url}</b>"), 1)
-        change = QPushButton("Andere server…")
+        change = QPushButton(_("Change server…"))
         change.clicked.connect(self._change_server)
         row.addWidget(change)
         layout.addWidget(server)
 
         # Meldingen
-        notify = QGroupBox("Meldingen")
+        notify = QGroupBox(_("Notifications"))
         col = QVBoxLayout(notify)
-        self.notify_enabled = QCheckBox("Meldingen van Home Assistant tonen")
+        self.notify_enabled = QCheckBox(_("Show notifications from Home Assistant"))
         self.notify_enabled.setChecked(config.notifications)
         col.addWidget(self.notify_enabled)
         self.status = _wrap("")
         col.addWidget(self.status)
-        col.addWidget(_wrap(TOKEN_HELP))
-        col.addWidget(_wrap(DEVICE_HELP))
-        make_token = QPushButton("Token aanmaken in Home Assistant…")
+        col.addWidget(_wrap(_(TOKEN_HELP)))
+        col.addWidget(_wrap(_(DEVICE_HELP)))
+        make_token = QPushButton(_("Create token in Home Assistant…"))
         make_token.clicked.connect(self._open_token_page)
         col.addWidget(make_token)
         self.token_form = TokenForm(config, api, tokens)
         if tokens.get(config.server_url):
-            self.token_form.token.setPlaceholderText("Er is een token opgeslagen — laat leeg om te behouden")
+            self.token_form.token.setPlaceholderText(_("A token is saved — leave empty to keep it"))
         self.token_form.registered.connect(self._registered)
         col.addWidget(self.token_form)
         layout.addWidget(notify)
@@ -105,22 +106,22 @@ class SettingsDialog(QDialog):
         self.token_form.setEnabled(config.notifications)
 
         # Venster
-        window = QGroupBox("Venster")
+        window = QGroupBox(_("Window"))
         col = QVBoxLayout(window)
-        self.close_to_tray = QCheckBox("Bij sluiten op de achtergrond blijven draaien (systeemvak)")
+        self.close_to_tray = QCheckBox(_("Keep running in the background when closed (system tray)"))
         self.close_to_tray.setChecked(config.close_to_tray and tray_available)
         self.close_to_tray.setEnabled(tray_available)
         if not tray_available:
-            self.close_to_tray.setToolTip("Je bureaublad heeft geen systeemvak.")
-        self.autostart = QCheckBox("Starten bij inloggen (verborgen)")
+            self.close_to_tray.setToolTip(_("Your desktop has no system tray."))
+        self.autostart = QCheckBox(_("Start at login (hidden)"))
         self.autostart.setChecked(autostart_file().exists())
         col.addWidget(self.close_to_tray)
         col.addWidget(self.autostart)
         layout.addWidget(window)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
-        buttons.button(QDialogButtonBox.StandardButton.Save).setText("Opslaan")
-        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Annuleren")
+        buttons.button(QDialogButtonBox.StandardButton.Save).setText(_("Save"))
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText(_("Cancel"))
         buttons.accepted.connect(self._save)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -137,13 +138,15 @@ class SettingsDialog(QDialog):
 
     def _show_status(self, state: str = "", detail: str = "") -> None:
         if not self.notify_enabled.isChecked():
-            self.status.setText("Uitgeschakeld.")
+            self.status.setText(_("Off."))
             return
         if not self.config.notifications:
-            self.status.setText("Nog niet actief — plak hieronder een token en kies <b>Opslaan</b>.")
+            self.status.setText(_("Not active yet — paste a token below and choose <b>Save</b>."))
             return
         state, detail = state or self.push.state, detail or self.push.detail
-        self.status.setText(STATE_TEXT.get(state, state) + (f"<br><small>{detail}</small>" if detail else ""))
+        color, text = STATE_TEXT.get(state, ("", state))
+        text = f"<span style='color:{color}'>{_(text)}</span>" if color else _(text)
+        self.status.setText(text + (f"<br><small>{detail}</small>" if detail else ""))
 
     def _open_token_page(self) -> None:
         self.open_path.emit("/profile/security")
@@ -151,9 +154,9 @@ class SettingsDialog(QDialog):
 
     def _change_server(self) -> None:
         answer = QMessageBox.question(
-            self, "Andere server",
-            "Wil je verbinden met een andere Home Assistant-server? "
-            "Je gaat dan opnieuw door de eerste-keer-instellingen.",
+            self, _("Change server"),
+            _("Do you want to connect to a different Home Assistant server? You will go through the "
+              "first-time setup again."),
         )
         if answer == QMessageBox.StandardButton.Yes:
             self.reject()

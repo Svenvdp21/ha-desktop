@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 from ha_desktop import APP_ID, APP_NAME, __version__
 from ha_desktop.config import Config, TokenStore
 from ha_desktop.haapi import HaApi
+from ha_desktop.i18n import _, language
 from ha_desktop.notifier import Notifier, notification_target
 from ha_desktop.onboarding import Onboarding, _card, _title, _wrap
 from ha_desktop.push import PushClient
@@ -47,16 +48,16 @@ class ErrorPage(QWidget):
         self._retry = retry
         self.detail = _wrap("")
         self.countdown = QLabel()
-        again = QPushButton("Nu opnieuw proberen")
+        again = QPushButton(_("Try again now"))
         again.clicked.connect(self._fire)
-        other = QPushButton("Instellingen…")
+        other = QPushButton(_("Settings…"))
         other.clicked.connect(settings)
         row = QWidget()
         buttons = QHBoxLayout(row)
         buttons.addWidget(other)
         buttons.addStretch(1)
         buttons.addWidget(again)
-        QVBoxLayout(self).addWidget(_card(_title("Geen verbinding met Home Assistant"),
+        QVBoxLayout(self).addWidget(_card(_title(_("Can't connect to Home Assistant")),
                                           self.detail, self.countdown, row))
         self._remaining = 0
         self._timer = QTimer(self, interval=1000)
@@ -79,7 +80,7 @@ class ErrorPage(QWidget):
             self._tick_label()
 
     def _tick_label(self) -> None:
-        self.countdown.setText(f"Automatisch opnieuw proberen over {self._remaining} s…")
+        self.countdown.setText(_("Retrying automatically in {seconds} s…").format(seconds=self._remaining))
 
     def _fire(self) -> None:
         self._timer.stop()
@@ -142,10 +143,10 @@ class MainWindow(QMainWindow):
         banner.setStyleSheet("#banner { background: palette(alternate-base); border-bottom: 1px solid palette(mid); }")
         row = QHBoxLayout(banner)
         row.setContentsMargins(12, 6, 6, 6)
-        row.addWidget(QLabel("Meldingen van Home Assistant op deze computer ontvangen?"), 1)
-        setup = QPushButton("Instellen…")
+        row.addWidget(QLabel(_("Get Home Assistant notifications on this computer?")), 1)
+        setup = QPushButton(_("Set up…"))
         setup.clicked.connect(self.app.open_settings)
-        dismiss = QPushButton("Niet nu")
+        dismiss = QPushButton(_("Not now"))
         dismiss.setFlat(True)
         dismiss.clicked.connect(self._dismiss_banner)
         row.addWidget(setup)
@@ -177,7 +178,8 @@ class MainWindow(QMainWindow):
         if self.stack.currentWidget() is self.onboarding:
             return
         self.stack.setCurrentWidget(self.error)
-        self.error.show_error(f"{self.app.config.server_url} is niet bereikbaar.<br><small>{message}</small>")
+        self.error.show_error(_("{url} can't be reached.").format(url=self.app.config.server_url)
+                              + f"<br><small>{message}</small>")
 
     def _load_finished(self, ok: bool) -> None:
         if ok and self.stack.currentWidget() is self.error:
@@ -238,11 +240,11 @@ class HaDesktop:
         tray = QSystemTrayIcon(app_icon(), self.qapp)
         tray.setToolTip(APP_NAME)
         menu = QMenu()
-        for text, slot in [("Openen", self.show_window), ("Herladen", self.window.view.reload),
-                           ("Instellingen…", self.open_settings)]:
+        for text, slot in [(_("Open"), self.show_window), (_("Reload"), self.window.view.reload),
+                           (_("Settings…"), self.open_settings)]:
             menu.addAction(QAction(text, menu, triggered=slot))
         menu.addSeparator()
-        menu.addAction(QAction("Afsluiten", menu, triggered=self.quit))
+        menu.addAction(QAction(_("Quit"), menu, triggered=self.quit))
         tray.setContextMenu(menu)
         self._tray_menu = menu
         tray.activated.connect(self._tray_activated)
@@ -314,8 +316,8 @@ class HaDesktop:
 
     def _on_push_status(self, state: str, detail: str) -> None:
         if self.tray:
-            text = {"connected": "meldingen actief", "error": "meldingen: fout",
-                    "connecting": "verbinden…"}.get(state, "niet verbonden")
+            text = {"connected": _("notifications active"), "error": _("notifications: error"),
+                    "connecting": _("connecting…")}.get(state, _("not connected"))
             self.tray.setToolTip(f"{APP_NAME} — {text}")
         if state == "error":
             self.notifier.show(APP_NAME, detail)
@@ -345,8 +347,8 @@ def _claim_single_instance(app: HaDesktop | None = None) -> QLocalServer | None:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="ha-desktop", description=f"{APP_NAME} {__version__}")
-    parser.add_argument("--hidden", action="store_true", help="start verborgen in het systeemvak")
-    parser.add_argument("--debug", action="store_true", help="uitgebreide logging")
+    parser.add_argument("--hidden", action="store_true", help=_("start hidden in the system tray"))
+    parser.add_argument("--debug", action="store_true", help=_("verbose logging"))
     args, qt_args = parser.parse_known_args(argv[1:])
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="%(levelname)s %(name)s: %(message)s")
@@ -358,9 +360,9 @@ def main(argv: list[str]) -> int:
     qapp.setDesktopFileName(APP_ID)
     qapp.setWindowIcon(app_icon())
     qapp.setQuitOnLastWindowClosed(False)
-    # Standaardknoppen (Ja/Nee, OK) in de taal van het systeem.
+    # Standaardknoppen (Ja/Nee, OK) in dezelfde taal als de app.
     translator = QTranslator(qapp)
-    if translator.load(QLocale(), "qtbase", "_", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
+    if translator.load(QLocale(language()), "qtbase", "_", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
         qapp.installTranslator(translator)
 
     server = _claim_single_instance()

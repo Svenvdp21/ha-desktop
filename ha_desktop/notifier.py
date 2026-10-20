@@ -12,6 +12,7 @@ from PySide6.QtCore import QObject, QProcess, Signal
 from PySide6.QtWidgets import QSystemTrayIcon
 
 from ha_desktop import APP_ID, APP_NAME
+from ha_desktop.i18n import _
 from ha_desktop.resources import icon_path
 
 
@@ -40,7 +41,7 @@ class Notifier(QObject):
                 "--app-name", APP_NAME,
                 "--icon", str(icon_path()),
                 "--hint", f"string:desktop-entry:{APP_ID}",
-                "--action", "default=Openen",
+                "--action", f"default={_('Open')}",
                 "--", title, message,
             ])
 

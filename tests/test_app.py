@@ -14,6 +14,9 @@ from PySide6.QtCore import QEventLoop, QTimer  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
 from fake_ha import TOKEN, WEBHOOK, FakeHA  # noqa: E402
+import ast  # noqa: E402
+
+from ha_desktop import i18n  # noqa: E402
 from ha_desktop.config import Config, normalize_url  # noqa: E402
 from ha_desktop.haapi import HaApi  # noqa: E402
 from ha_desktop.notifier import notification_target  # noqa: E402
@@ -51,6 +54,50 @@ def call(fn, *args, timeout=5000):
     if not box:
         raise AssertionError("time-out")
     return box[0]
+
+
+i18n.set_language("en")
+PACKAGE = Path(__file__).resolve().parent.parent / "ha_desktop"
+
+
+class TranslationTests(unittest.TestCase):
+    def _strings(self):
+        """Alle letterlijke teksten in _("...") en N_("...") in de broncode."""
+        found = {}
+        for path in PACKAGE.glob("*.py"):
+            for node in ast.walk(ast.parse(path.read_text())):
+                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                        and node.func.id in ("_", "N_") and node.args
+                        and isinstance(node.args[0], ast.Constant)):
+                    found[node.args[0].value] = path.name
+        return found
+
+    def test_every_string_has_dutch(self):
+        from ha_desktop.translations import NL
+        missing = {t: f for t, f in self._strings().items() if t not in NL}
+        self.assertEqual(missing, {}, "Ontbrekende Nederlandse vertalingen")
+
+    def test_placeholders_match(self):
+        from string import Formatter
+        from ha_desktop.translations import NL
+        names = lambda t: {f for _, f, _, _ in Formatter().parse(t) if f}
+        for en, nl in NL.items():
+            self.assertEqual(names(en), names(nl), en)
+
+    def test_no_unused_translations(self):
+        from ha_desktop.translations import NL
+        unused = set(NL) - set(self._strings())
+        self.assertEqual(unused, set())
+
+    def test_switch_language(self):
+        try:
+            i18n.set_language("nl")
+            self.assertEqual(i18n._("Connect"), "Verbinden")
+            with self.assertRaisesRegex(ValueError, "geldig adres"):
+                normalize_url("http://")
+        finally:
+            i18n.set_language("en")
+        self.assertEqual(i18n._("Connect"), "Connect")
 
 
 class ConfigTests(unittest.TestCase):
@@ -108,11 +155,11 @@ class ServerTests(unittest.TestCase):
         bad = call(self.api.probe, self.ha.url + "/nope")
         self.assertFalse(bad.ok)
         refused = call(self.api.probe, "http://127.0.0.1:1")
-        self.assertIn("geweigerd", refused.error)
+        self.assertIn("refused", refused.error)
 
     def test_register(self):
         bad = call(self.api.register_device, self.ha.url, "fout")
-        self.assertIn("ongeldig", bad.error)
+        self.assertIn("invalid", bad.error)
         good = call(self.api.register_device, self.ha.url, TOKEN)
         self.assertEqual(good.data["webhook_id"], WEBHOOK)
         reg = self.ha.registrations[0]
@@ -152,7 +199,7 @@ class ServerTests(unittest.TestCase):
         push.start(self.ha.url, "fout", WEBHOOK)
         while push.state != "error":
             wait_for(push.status_changed)
-        self.assertIn("Token", push.detail)
+        self.assertIn("token", push.detail)
         push.start(self.ha.url, TOKEN, "verkeerd")
         while push.state != "error":
             wait_for(push.status_changed)

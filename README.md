@@ -4,13 +4,15 @@
 
 # Home Assistant voor Linux
 
+**🇳🇱 Nederlands** · [🇬🇧 English](README.en.md)
+
 **Je Home Assistant-dashboard als echte desktop-app — met meldingen op je bureaublad.**
 
 [![Download](https://img.shields.io/badge/download-RPM-18BCF2?style=for-the-badge&logo=homeassistant&logoColor=white)](../../releases/latest)
 ![Fedora](https://img.shields.io/badge/Fedora-44-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
 ![Qt](https://img.shields.io/badge/Qt-PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 
-<img src="docs/screenshots/onboarding.png" width="720" alt="Welkomstscherm">
+<img src="docs/screenshots/nl/onboarding.png" width="720" alt="Welkomstscherm">
 
 </div>
 
@@ -27,6 +29,7 @@
 | 📥 **Systeemvak** | Draait op de achtergrond door, zodat je geen melding mist. Kan meestarten bij inloggen. |
 | 🔒 **Lokaal en veilig** | Meldingen komen rechtstreeks van je eigen server, niet via een cloud. Je token staat in de keyring (KWallet / GNOME Keyring). |
 | 🔁 **Robuust** | Server even weg of laptop uit de slaapstand? De app verbindt vanzelf opnieuw. |
+| 🌍 **Nederlands en Engels** | Volgt de taal van je systeem. |
 
 ## 📦 Installeren
 
@@ -67,7 +70,7 @@ Laat de map daarna staan: de app draait vanuit deze map.
 
 ## 🔔 Meldingen instellen
 
-<img align="right" src="docs/screenshots/instellingen.png" width="340" alt="Instellingen">
+<img align="right" src="docs/screenshots/nl/settings.png" width="340" alt="Instellingen">
 
 Meldingen werken via een **token**: een soort wachtwoord waarmee de app zelf met je
 server praat.
@@ -132,6 +135,13 @@ Vink op de loginpagina **Ingelogd blijven** aan.
 </details>
 
 <details>
+<summary><b>De app in een andere taal</b></summary>
+
+De app volgt de taal van je systeem: Nederlands op een Nederlands systeem, anders Engels.
+Een taal afdwingen kan met `HA_DESKTOP_LANG=en ha-desktop` (of `nl`).
+</details>
+
+<details>
 <summary><b>Waar staan mijn gegevens?</b></summary>
 
 | Wat | Waar |
@@ -149,6 +159,9 @@ python3 -m ha_desktop --debug                                       # starten va
 QT_QPA_PLATFORM=offscreen python3 -m unittest discover -s tests -v  # tests
 ./packaging/build-rpm.sh                                            # RPM bouwen -> dist/
 ```
+
+Teksten in de code zijn Engels en staan in `_("...")`; de Nederlandse vertaling staat in
+`ha_desktop/translations.py`. De tests controleren dat elke tekst een vertaling heeft.
 
 De tests draaien tegen een nagebootste Home Assistant (`tests/fake_ha.py`): server-check,
 apparaatregistratie, het push-kanaal en opnieuw verbinden.
