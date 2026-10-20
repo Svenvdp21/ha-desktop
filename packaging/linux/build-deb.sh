@@ -22,7 +22,7 @@ Version: $VERSION
 Architecture: amd64
 Maintainer: Svenvdp21 <177861668+Svenvdp21@users.noreply.github.com>
 Installed-Size: $(du -sk "$PKG" | cut -f1)
-Depends: libc6 (>= 2.35), libnss3, libxkbcommon0, libxkbcommon-x11-0, libxcb-cursor0, libegl1, libgl1, libfontconfig1, libdbus-1-3
+Depends: libc6 (>= 2.35), libnss3, libxkbcommon0, libxkbcommon-x11-0, libxcb-cursor0, libegl1, libgl1, libgbm1, libfontconfig1, libdbus-1-3, libwayland-client0, libwayland-server0, libwayland-cursor0, libwayland-egl1
 Recommends: libnotify-bin, gnome-keyring | kwalletmanager
 Section: utils
 Priority: optional
