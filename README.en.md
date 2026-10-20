@@ -2,11 +2,17 @@
 
 <img src="ha_desktop/data/com.nordicnode.HADesktop.svg" width="128" alt="">
 
-# Home Assistant for Linux
+# Home Assistant Desktop
+
+*Unofficial Home Assistant app for Linux*
 
 [🇳🇱 Nederlands](README.md) · **🇬🇧 English**
 
 **Your Home Assistant dashboard as a real desktop app — with notifications on your desktop.**
+
+![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+![Vibecoded](https://img.shields.io/badge/vibecoded-with%20Claude-D97757?style=flat-square)
+![Unofficial](https://img.shields.io/badge/unofficial-not%20by%20Home%20Assistant-lightgrey?style=flat-square)
 
 [![Download](https://img.shields.io/badge/download-RPM-18BCF2?style=for-the-badge&logo=homeassistant&logoColor=white)](../../releases/latest)
 ![Fedora](https://img.shields.io/badge/Fedora-44-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
@@ -17,6 +23,21 @@
 </div>
 
 ---
+
+## 💡 Why this app?
+
+On Linux you can install Home Assistant as a **PWA** (*"Install app"* in your browser).
+That works, but you don't get notifications from your automations: the official apps
+with push notifications only exist for Android and iOS.
+
+This app **replaces that PWA** and adds what's missing: real **desktop notifications**.
+Your PC becomes a device in Home Assistant, just like your phone, and you send
+notifications to it with `notify.mobile_app_<name>`.
+
+> 🤖 **Vibecoded.** This app was written entirely by AI (Claude by Anthropic), directed by
+> a user without programming experience. It is covered by automated tests and daily use,
+> but has not been reviewed by an experienced developer. Use at your own risk; please
+> report problems via *Issues*.
 
 ## ✨ Features
 
@@ -38,7 +59,7 @@
    ```sh
    sudo dnf install ./ha-desktop-*.noarch.rpm
    ```
-3. Start **Home Assistant** from the menu.
+3. Start **Home Assistant Desktop** from the menu.
 
 Uninstall: `sudo dnf remove ha-desktop`
 
@@ -176,6 +197,12 @@ alongside; just enable notifications in only one of the two.
 
 ---
 
-<sub>This is not an official Home Assistant project. The name and logo are trademarks of the
-[Open Home Foundation](https://www.openhomefoundation.org/) and are used here for private,
-non-commercial use only.</sub>
+## 📄 License
+
+The code is released under the [MIT license](LICENSE): you may freely use, modify and
+share it, with attribution.
+
+<sub>**This is not an official Home Assistant project** and is not affiliated with the
+[Open Home Foundation](https://www.openhomefoundation.org/) or Nabu Casa. The Home Assistant
+name and logo are trademarks of the Open Home Foundation, are not covered by the MIT
+license, and are used here non-commercially only, to indicate what the app is for.</sub>

@@ -13,7 +13,7 @@ mkdir -p "$TOP"/{SOURCES,SPECS} "$ROOT/dist"
 
 tar -czf "$TOP/SOURCES/$NAME.tar.gz" -C "$ROOT" \
     --exclude=__pycache__ --transform "s|^|$NAME/|" \
-    ha_desktop data README.md README.en.md
+    ha_desktop data README.md README.en.md LICENSE
 
 rpmbuild -bb "$ROOT/packaging/ha-desktop.spec" \
     --define "_topdir $TOP" \

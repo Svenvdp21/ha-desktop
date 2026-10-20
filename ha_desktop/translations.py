@@ -64,6 +64,8 @@ NL = {
     "Give this computer a name.": "Geef deze computer een naam.",
     "Connect": "Verbinden",
     "Welcome to {app}": "Welkom bij {app}",
+    "Unofficial app, not affiliated with Home Assistant or the Open Home Foundation.":
+        "Onofficiële app, niet verbonden aan Home Assistant of de Open Home Foundation.",
     "Enter the address of your Home Assistant server. This is usually "
     "<code>http://homeassistant.local:8123</code>, your server's IP address with port 8123, "
     "or your external address (e.g. Home Assistant Link).":

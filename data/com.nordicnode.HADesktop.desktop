@@ -1,6 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Home Assistant
+Name=Home Assistant Desktop (unofficial)
+Name[nl]=Home Assistant Desktop (onofficieel)
 GenericName=Smart home dashboard
 GenericName[nl]=Smart-home-dashboard
 Comment=Your Home Assistant dashboard as a desktop app, with notifications

@@ -187,6 +187,8 @@ class Onboarding(QWidget):
         return _card(
             logo,
             _title(_("Welcome to {app}").format(app=APP_NAME)),
+            _wrap("<small>" + _("Unofficial app, not affiliated with Home Assistant or the "
+                                "Open Home Foundation.") + "</small>"),
             _wrap(_("Enter the address of your Home Assistant server. This is usually "
                     "<code>http://homeassistant.local:8123</code>, your server's IP address with port 8123, "
                     "or your external address (e.g. Home Assistant Link).")),

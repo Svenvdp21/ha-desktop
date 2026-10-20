@@ -3,10 +3,11 @@
 Name:           ha-desktop
 Version:        %{app_version}
 Release:        1%{?dist}
-Summary:        Home Assistant-desktopapp met meldingen
-# Eigen code voor privégebruik; het meegeleverde logo is een merk van de Open Home Foundation.
-License:        LicenseRef-Proprietary
-URL:            https://github.com/home-assistant/assets
+Summary:        Unofficial Home Assistant desktop app with notifications
+# Code: MIT. Het meegeleverde logo is een merk van de Open Home Foundation
+# (https://github.com/home-assistant/assets), alleen voor niet-commercieel gebruik.
+License:        MIT
+URL:            https://github.com/Svenvdp21/ha-desktop
 Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch
 
@@ -45,6 +46,7 @@ install -Dm644 data/%{app_id}.desktop "%{buildroot}%{_datadir}/applications/%{ap
 install -Dm644 ha_desktop/data/%{app_id}.svg "%{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg"
 install -Dm644 README.md "%{buildroot}%{_docdir}/%{name}/README.md"
 install -Dm644 README.en.md "%{buildroot}%{_docdir}/%{name}/README.en.md"
+install -Dm644 LICENSE "%{buildroot}%{_licensedir}/%{name}/LICENSE"
 
 %check
 desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
@@ -52,12 +54,16 @@ desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 %files
 %doc %{_docdir}/%{name}/README.md
 %doc %{_docdir}/%{name}/README.en.md
+%license %{_licensedir}/%{name}/LICENSE
 %{_bindir}/ha-desktop
 %{python3_sitelib}/ha_desktop/
 %{_datadir}/applications/%{app_id}.desktop
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 
 %changelog
+* Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.3.0-1
+- Nieuwe naam: Home Assistant Desktop (onofficieel); MIT-licentie
+
 * Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.2.1-1
 - Groter icoon (logo zonder extra marges)
 

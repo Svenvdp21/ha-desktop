@@ -2,11 +2,17 @@
 
 <img src="ha_desktop/data/com.nordicnode.HADesktop.svg" width="128" alt="">
 
-# Home Assistant voor Linux
+# Home Assistant Desktop
+
+*Onofficiële Home Assistant-app voor Linux*
 
 **🇳🇱 Nederlands** · [🇬🇧 English](README.en.md)
 
 **Je Home Assistant-dashboard als echte desktop-app — met meldingen op je bureaublad.**
+
+![Licentie: MIT](https://img.shields.io/badge/licentie-MIT-blue?style=flat-square)
+![Vibecoded](https://img.shields.io/badge/vibecoded-met%20Claude-D97757?style=flat-square)
+![Onofficieel](https://img.shields.io/badge/onofficieel-niet%20van%20Home%20Assistant-lightgrey?style=flat-square)
 
 [![Download](https://img.shields.io/badge/download-RPM-18BCF2?style=for-the-badge&logo=homeassistant&logoColor=white)](../../releases/latest)
 ![Fedora](https://img.shields.io/badge/Fedora-44-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
@@ -17,6 +23,21 @@
 </div>
 
 ---
+
+## 💡 Waarom deze app?
+
+Op Linux kun je Home Assistant als **PWA** installeren (*"App installeren"* in je browser).
+Dat werkt, maar meldingen van je automatiseringen krijg je zo niet: de officiële apps met
+pushmeldingen bestaan alleen voor Android en iOS.
+
+Deze app **vervangt die PWA** en voegt toe wat ontbreekt: echte **bureaubladmeldingen**.
+Je pc wordt in Home Assistant een apparaat, net als je telefoon, en je stuurt er meldingen
+naartoe met `notify.mobile_app_<naam>`.
+
+> 🤖 **Vibecoded.** Deze app is volledig geschreven door AI (Claude van Anthropic) op
+> aanwijzing van een gebruiker zonder programmeerervaring. Hij is getest met
+> geautomatiseerde tests en dagelijks gebruik, maar niet door een ervaren ontwikkelaar
+> nagekeken. Gebruik is op eigen risico; problemen melden kan via *Issues*.
 
 ## ✨ Wat kan het?
 
@@ -38,7 +59,7 @@
    ```sh
    sudo dnf install ./ha-desktop-*.noarch.rpm
    ```
-3. Start **Home Assistant** vanuit het menu.
+3. Start **Home Assistant Desktop** vanuit het menu.
 
 Verwijderen: `sudo dnf remove ha-desktop`
 
@@ -177,6 +198,13 @@ gebruiken; zet meldingen dan in maar één van beide aan.
 
 ---
 
-<sub>Dit is geen officieel Home Assistant-project. Naam en logo zijn merken van de
-[Open Home Foundation](https://www.openhomefoundation.org/) en worden hier alleen gebruikt
-voor privé, niet-commercieel gebruik.</sub>
+## 📄 Licentie
+
+De code valt onder de [MIT-licentie](LICENSE): je mag hem vrij gebruiken, aanpassen en
+delen, met naamsvermelding.
+
+<sub>**Dit is geen officieel Home Assistant-project** en is niet verbonden aan de
+[Open Home Foundation](https://www.openhomefoundation.org/) of Nabu Casa. De naam Home
+Assistant en het logo zijn merken van de Open Home Foundation, vallen niet onder de
+MIT-licentie en worden hier alleen niet-commercieel gebruikt, om aan te geven waarvoor
+de app bedoeld is.</sub>
