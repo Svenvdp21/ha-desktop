@@ -1,0 +1,137 @@
+# Bouwt alle pakketten, test ze (--self-test) en zet ze bij een tag (v*) in een release.
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon0 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2t64
+      - run: pip install -r packaging/requirements-build.txt
+      - run: python -m unittest discover -s tests -v
+        env: { QT_QPA_PLATFORM: offscreen }
+
+  rpm:
+    runs-on: ubuntu-24.04
+    container: fedora:44
+    steps:
+      - uses: actions/checkout@v4
+      - run: dnf install -y rpm-build python3-devel desktop-file-utils python3
+      - run: ./packaging/build-rpm.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: rpm, path: dist/*.rpm }
+
+  linux:
+    # Oudere Ubuntu = oudere glibc, zodat de build op zoveel mogelijk distro's draait.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libxkbcommon0 libxkbcommon-x11-0 libxcb-cursor0 libnss3 \
+            libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2 libfuse2 desktop-file-utils
+      - run: pip install -r packaging/requirements-build.txt
+      - run: python packaging/pyinstaller/make_icons.py
+      - run: pyinstaller --noconfirm packaging/pyinstaller/ha-desktop.spec
+      - name: Self-test
+        run: dist/ha-desktop/ha-desktop --self-test
+        env: { QT_QPA_PLATFORM: offscreen, QTWEBENGINE_CHROMIUM_FLAGS: "--disable-gpu" }
+      - run: ./packaging/linux/build-deb.sh
+      - run: ./packaging/linux/build-appimage.sh
+      - name: Self-test AppImage
+        run: dist/*.AppImage --self-test
+        env: { QT_QPA_PLATFORM: offscreen, APPIMAGE_EXTRACT_AND_RUN: "1", QTWEBENGINE_CHROMIUM_FLAGS: "--disable-gpu" }
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: "dist/*.deb\ndist/*.AppImage" }
+
+  deb-test:
+    # Installeert de .deb op een kale Ubuntu/Debian om de afhankelijkheden te controleren.
+    needs: linux
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12"]
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: linux }
+      - run: apt-get update && apt-get install -y ./ha-desktop_*_amd64.deb
+      - run: ha-desktop --self-test
+        env: { QT_QPA_PLATFORM: offscreen, QTWEBENGINE_DISABLE_SANDBOX: "1", QTWEBENGINE_CHROMIUM_FLAGS: "--disable-gpu" }
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r packaging/requirements-build.txt
+      - run: python packaging/pyinstaller/make_icons.py
+        env: { QT_QPA_PLATFORM: offscreen }
+      - run: pyinstaller --noconfirm packaging/pyinstaller/ha-desktop.spec
+      - name: Self-test
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath dist\ha-desktop\ha-desktop.exe -ArgumentList "--self-test" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "self-test mislukt ($($p.ExitCode))" }
+      - run: choco install innosetup -y --no-progress
+      - name: Installer
+        shell: pwsh
+        run: |
+          $v = python -c "import ha_desktop; print(ha_desktop.__version__)"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" packaging\windows\installer.iss
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: dist/*.exe }
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: macos-15, arch: arm64 }
+          - { runner: macos-15-intel, arch: x86_64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r packaging/requirements-build.txt
+      - run: python packaging/pyinstaller/make_icons.py
+      - run: pyinstaller --noconfirm packaging/pyinstaller/ha-desktop.spec
+      - name: Self-test
+        run: '"dist/Home Assistant Desktop.app/Contents/MacOS/ha-desktop" --self-test'
+      - run: ./packaging/macos/build-dmg.sh ${{ matrix.arch }}
+      - uses: actions/upload-artifact@v4
+        with: { name: "macos-${{ matrix.arch }}", path: dist/*.dmg }
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [tests, rpm, linux, deb-test, windows, macos]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: out, merge-multiple: true }
+      - name: Release
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          ls -la out
+          gh release create "$GITHUB_REF_NAME" out/* --title "Home Assistant Desktop ${GITHUB_REF_NAME#v} (unofficial)" \
+            --notes-file packaging/release-notes.md

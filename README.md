@@ -15,7 +15,7 @@
 ![Onofficieel](https://img.shields.io/badge/onofficieel-niet%20van%20Home%20Assistant-lightgrey?style=flat-square)
 
 [![Download](https://img.shields.io/badge/download-RPM-18BCF2?style=for-the-badge&logo=homeassistant&logoColor=white)](../../releases/latest)
-![Fedora](https://img.shields.io/badge/Fedora-44-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
+![Platforms](https://img.shields.io/badge/Windows%20·%20macOS%20·%20Linux-555?style=for-the-badge)
 ![Qt](https://img.shields.io/badge/Qt-PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 
 <img src="docs/screenshots/nl/onboarding.png" width="720" alt="Welkomstscherm">
@@ -54,17 +54,44 @@ naartoe met `notify.mobile_app_<naam>`.
 
 ## 📦 Installeren
 
-1. Download het nieuwste `.rpm`-bestand onder **[Releases](../../releases/latest)**.
-2. Installeer het:
-   ```sh
-   sudo dnf install ./ha-desktop-*.noarch.rpm
-   ```
-3. Start **Home Assistant Desktop** vanuit het menu.
+Download het bestand voor jouw systeem onder **[Releases](../../releases/latest)**:
 
-Verwijderen: `sudo dnf remove ha-desktop`
+| Systeem | Bestand | Installeren |
+|---|---|---|
+| 🪟 **Windows** 10/11 | `…-windows-x64-setup.exe` | Dubbelklik en volg de stappen. Geen beheerdersrechten nodig. |
+| 🍎 **macOS** Apple Silicon (M1–M4) | `…-macos-arm64.dmg` | Open de dmg en sleep de app naar *Programma's*. |
+| 🍎 **macOS** Intel | `…-macos-x86_64.dmg` | Idem. |
+| 🐧 **Ubuntu / Debian / Mint** | `ha-desktop_…_amd64.deb` | `sudo apt install ./ha-desktop_*_amd64.deb` |
+| 🐧 **Fedora** 44 | `ha-desktop-…fc44.noarch.rpm` | `sudo dnf install ./ha-desktop-*.noarch.rpm` |
+| 🐧 **Elke Linux** | `…-x86_64.AppImage` | Rechtsklik → *Eigenschappen* → *Uitvoerbaar*, dan dubbelklikken. |
 
 <details>
-<summary><b>Geen Fedora 44?</b> Installeren vanuit de broncode</summary>
+<summary><b>Windows of macOS geeft een waarschuwing</b></summary>
+
+<br>
+
+De app is niet *ondertekend* (dat kost geld bij Microsoft en Apple), dus je systeem kent
+de maker niet.
+
+- **Windows:** klik bij *"Windows heeft uw pc beschermd"* op **Meer info** → **Toch uitvoeren**.
+- **macOS:** open de app één keer, klik op **Gereed**, en ga naar **Systeeminstellingen →
+  Privacy en beveiliging**. Klik onderaan bij Home Assistant Desktop op **Open toch**.
+  Of in Terminal: `xattr -dr com.apple.quarantine "/Applications/Home Assistant Desktop.app"`
+</details>
+
+<details>
+<summary><b>Linux: meldingen en keyring</b></summary>
+
+<br>
+
+Meldingen gebruiken `notify-send` (pakket `libnotify-bin` op Debian/Ubuntu, `libnotify` op
+Fedora). Het token gaat naar GNOME Keyring of KWallet. Op Ubuntu 24.04+ draait de webweergave
+in de .deb en AppImage zonder Chromium-sandbox, omdat AppArmor die anders blokkeert; de app
+laadt alleen je eigen server.
+</details>
+
+<details>
+<summary><b>Vanuit de broncode</b></summary>
 
 <br>
 

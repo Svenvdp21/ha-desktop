@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import shlex
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -33,29 +33,75 @@ STATE_TEXT = {
 }
 
 
+RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+
 def autostart_file() -> Path:
+    if sys.platform == "darwin":
+        return Path.home() / "Library/LaunchAgents" / f"{APP_ID}.plist"
     return _xdg("XDG_CONFIG_HOME", ".config") / "autostart" / f"{APP_ID}.desktop"
 
 
-def launch_command() -> str:
+def launch_args() -> list[str]:
+    """Commando waarmee deze installatie de app start."""
+    if getattr(sys, "frozen", False):
+        # Gebundelde build; een AppImage draait vanuit een tijdelijke mount.
+        return [os.environ.get("APPIMAGE") or sys.executable]
     installed = shutil.which("ha-desktop")
     if installed:
-        return installed
+        return [installed]
     package_root = Path(__file__).resolve().parent.parent
-    return f"env PYTHONPATH={shlex.quote(str(package_root))} {sys.executable} -m ha_desktop"
+    return ["env", f"PYTHONPATH={package_root}", sys.executable, "-m", "ha_desktop"]
+
+
+def desktop_exec(args: list[str]) -> str:
+    """Exec-regel voor een .desktop-bestand (die kent alleen dubbele aanhalingstekens)."""
+    return " ".join(f'"{a}"' if " " in a else a for a in args)
+
+
+def autostart_enabled() -> bool:
+    if sys.platform == "win32":
+        import winreg
+
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
+                winreg.QueryValueEx(key, APP_ID)
+            return True
+        except OSError:
+            return False
+    return autostart_file().exists()
 
 
 def set_autostart(enabled: bool) -> None:
+    args = [*launch_args(), "--hidden"]
+    if sys.platform == "win32":
+        import subprocess
+        import winreg
+
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
+            if enabled:
+                winreg.SetValueEx(key, APP_ID, 0, winreg.REG_SZ, subprocess.list2cmdline(args))
+            else:
+                try:
+                    winreg.DeleteValue(key, APP_ID)
+                except OSError:
+                    pass
+        return
     path = autostart_file()
     if not enabled:
         path.unlink(missing_ok=True)
         return
     path.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "darwin":
+        import plistlib
+
+        path.write_bytes(plistlib.dumps({"Label": APP_ID, "ProgramArguments": args, "RunAtLoad": True}))
+        return
     path.write_text(
         "[Desktop Entry]\n"
         "Type=Application\n"
         f"Name={APP_NAME}\n"
-        f"Exec={launch_command()} --hidden\n"
+        f"Exec={desktop_exec(args)}\n"
         f"Icon={APP_ID}\n"
         "X-GNOME-Autostart-enabled=true\n"
     )
@@ -114,7 +160,7 @@ class SettingsDialog(QDialog):
         if not tray_available:
             self.close_to_tray.setToolTip(_("Your desktop has no system tray."))
         self.autostart = QCheckBox(_("Start at login (hidden)"))
-        self.autostart.setChecked(autostart_file().exists())
+        self.autostart.setChecked(autostart_enabled())
         col.addWidget(self.close_to_tray)
         col.addWidget(self.autostart)
         layout.addWidget(window)

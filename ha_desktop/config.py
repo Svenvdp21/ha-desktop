@@ -1,4 +1,7 @@
-"""Instellingen (JSON in ~/.config) en opslag van het toegangstoken (keyring)."""
+"""Instellingen (JSON) en opslag van het toegangstoken (keyring).
+
+Linux gebruikt XDG-mappen (~/.config enz.); Windows %APPDATA%, macOS ~/Library.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +9,7 @@ import json
 import logging
 import os
 import socket
+import sys
 import uuid
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
@@ -21,18 +25,32 @@ def _xdg(var: str, fallback: str) -> Path:
     return Path(os.environ.get(var) or Path.home() / fallback)
 
 
+def _base(kind: str) -> Path:
+    """Basismap per soort ("config", "data", "cache") voor dit besturingssysteem."""
+    if sys.platform == "win32":
+        roaming = Path(os.environ.get("APPDATA") or Path.home() / "AppData/Roaming")
+        local = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData/Local")
+        return (local / "ha-desktop" / "cache") if kind == "cache" else roaming / "ha-desktop"
+    if sys.platform == "darwin":
+        lib = Path.home() / "Library"
+        return lib / "Caches/ha-desktop" if kind == "cache" else lib / "Application Support/ha-desktop"
+    var, fallback = {"config": ("XDG_CONFIG_HOME", ".config"), "data": ("XDG_DATA_HOME", ".local/share"),
+                     "cache": ("XDG_CACHE_HOME", ".cache")}[kind]
+    return _xdg(var, fallback) / "ha-desktop"
+
+
 def config_dir() -> Path:
     override = os.environ.get("HA_DESKTOP_CONFIG_DIR")
-    return Path(override) if override else _xdg("XDG_CONFIG_HOME", ".config") / "ha-desktop"
+    return Path(override) if override else _base("config")
 
 
 def data_dir() -> Path:
     override = os.environ.get("HA_DESKTOP_DATA_DIR")
-    return Path(override) if override else _xdg("XDG_DATA_HOME", ".local/share") / "ha-desktop"
+    return Path(override) if override else _base("data")
 
 
 def cache_dir() -> Path:
-    return _xdg("XDG_CACHE_HOME", ".cache") / "ha-desktop"
+    return _base("cache")
 
 
 @dataclass
@@ -116,13 +134,16 @@ def normalize_url(text: str) -> list[str]:
 
 
 class TokenStore:
-    """Bewaart het long-lived access token in de systeem-keyring (Secret Service).
+    """Bewaart het long-lived access token in de systeem-keyring.
 
-    Valt terug op een bestand met rechten 0600 als er geen keyring beschikbaar is.
+    Linux met PyGObject: libsecret (Secret Service). Anders de keyring-module
+    (Windows Referentiebeheer, macOS-sleutelhanger, of Secret Service in de
+    gebundelde Linux-builds). Zonder keyring: een bestand met rechten 0600.
     """
 
     def __init__(self) -> None:
         self._secret = None
+        self._keyring = None
         try:
             import gi
 
@@ -133,8 +154,19 @@ class TokenStore:
             self._schema = Secret.Schema.new(
                 APP_ID, Secret.SchemaFlags.NONE, {"server": Secret.SchemaAttributeType.STRING}
             )
+            return
         except (ImportError, ValueError) as exc:
-            log.info("libsecret niet beschikbaar (%s); token wordt in een bestand bewaard", exc)
+            log.debug("libsecret niet beschikbaar: %s", exc)
+        try:
+            import keyring
+            from keyring.backends import fail
+
+            if not isinstance(keyring.get_keyring(), fail.Keyring):
+                self._keyring = keyring
+        except Exception as exc:  # noqa: BLE001 - backend kan bij laden falen
+            log.debug("keyring niet beschikbaar: %s", exc)
+        if not self._keyring:
+            log.info("Geen keyring beschikbaar; token wordt in een bestand bewaard")
 
     def _file(self) -> Path:
         return config_dir() / "token"
@@ -146,6 +178,13 @@ class TokenStore:
                 if value:
                     return value
             except Exception as exc:  # noqa: BLE001 - keyring-daemon kan ontbreken
+                log.warning("Keyring lezen mislukt: %s", exc)
+        elif self._keyring:
+            try:
+                value = self._keyring.get_password(APP_ID, server)
+                if value:
+                    return value
+            except Exception as exc:  # noqa: BLE001
                 log.warning("Keyring lezen mislukt: %s", exc)
         try:
             stored = json.loads(self._file().read_text())
@@ -160,6 +199,13 @@ class TokenStore:
                     self._schema, {"server": server}, self._secret.COLLECTION_DEFAULT,
                     f"{APP_NAME} token ({server})", token, None,
                 )
+                self._remove_from_file(server)
+                return
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Keyring schrijven mislukt (%s); bestand gebruikt", exc)
+        elif self._keyring:
+            try:
+                self._keyring.set_password(APP_ID, server, token)
                 self._remove_from_file(server)
                 return
             except Exception as exc:  # noqa: BLE001
@@ -182,6 +228,11 @@ class TokenStore:
                 self._secret.password_clear_sync(self._schema, {"server": server}, None)
             except Exception as exc:  # noqa: BLE001
                 log.warning("Keyring wissen mislukt: %s", exc)
+        elif self._keyring:
+            try:
+                self._keyring.delete_password(APP_ID, server)
+            except Exception:  # noqa: BLE001 - bestaat niet = ook goed
+                pass
         self._remove_from_file(server)
 
     def _remove_from_file(self, server: str) -> None:

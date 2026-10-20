@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import logging
 import os
+import sys
 
 from PySide6.QtCore import QLibraryInfo, QLocale, QTimer, QTranslator, Qt
 from PySide6.QtGui import QAction, QKeySequence, QShortcut
@@ -37,7 +39,7 @@ from ha_desktop.webview import HaView, make_profile
 log = logging.getLogger(__name__)
 
 RETRY_SECONDS = 10
-INSTANCE_KEY = f"{APP_ID}-{os.getuid()}"
+INSTANCE_KEY = f"{APP_ID}-{getpass.getuser()}"
 
 
 class ErrorPage(QWidget):
@@ -222,6 +224,9 @@ class HaDesktop:
         self.push.notification.connect(self._on_notification)
         self.push.status_changed.connect(self._on_push_status)
         self.profile.setNotificationPresenter(self._present_web_notification)
+        if sys.platform == "darwin":
+            # Klik op het Dock-icoon: verborgen venster weer tonen.
+            qapp.applicationStateChanged.connect(self._on_app_state)
 
         if self.config.is_configured:
             self.window.show_browser()
@@ -325,6 +330,11 @@ class HaDesktop:
     def _present_web_notification(self, notification) -> None:
         self.notifier.show(notification.title(), notification.message())
 
+    def _on_app_state(self, state) -> None:
+        if (state == Qt.ApplicationState.ApplicationActive and not self.quitting
+                and not self.window.isVisible()):
+            self.show_window()
+
     def wake(self) -> None:
         """Aangeroepen als een tweede instantie wordt gestart."""
         self.show_window()
@@ -345,13 +355,51 @@ def _claim_single_instance(app: HaDesktop | None = None) -> QLocalServer | None:
     return server
 
 
+def _userns_restricted() -> bool:
+    try:
+        with open("/proc/sys/kernel/apparmor_restrict_unprivileged_userns") as f:
+            return f.read().strip() == "1"
+    except OSError:
+        return False
+
+
+def _self_test(qapp: QApplication) -> int:
+    """Controleert of een gebundelde build compleet is (gebruikt in CI)."""
+    from PySide6.QtWebEngineWidgets import QWebEngineView
+
+    from ha_desktop.resources import icon_path
+
+    print("icon:", icon_path().exists(), "| taal:", language(),
+          "| keyring:", type(TokenStore()._keyring or TokenStore()._secret).__name__)
+    view = QWebEngineView()
+    result: list[bool] = []
+    view.loadFinished.connect(lambda ok: (result.append(ok), qapp.quit()))
+    QTimer.singleShot(90_000, qapp.quit)
+    view.setHtml("<title>ok</title><p>ok</p>")
+    qapp.exec()
+    ok = bool(result and result[0] and icon_path().exists())
+    print("self-test:", "OK" if ok else "MISLUKT")
+    return 0 if ok else 1
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="ha-desktop", description=f"{APP_NAME} {__version__}")
     parser.add_argument("--hidden", action="store_true", help=_("start hidden in the system tray"))
     parser.add_argument("--debug", action="store_true", help=_("verbose logging"))
+    parser.add_argument("--self-test", action="store_true", help=argparse.SUPPRESS)
     args, qt_args = parser.parse_known_args(argv[1:])
+    if getattr(sys, "frozen", False) and sys.platform.startswith("linux") and _userns_restricted():
+        # Ubuntu 24.04+ staat de Chromium-sandbox alleen toe met een AppArmor-profiel;
+        # zonder dat start de webweergave niet. De app laadt alleen je eigen server.
+        os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="%(levelname)s %(name)s: %(message)s")
+
+    if sys.platform == "win32":
+        # Eigen taakbalkgroep en icoon in plaats van die van Python.
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
 
     qapp = QApplication([argv[0], *qt_args])
     qapp.setApplicationName("ha-desktop")
@@ -364,6 +412,9 @@ def main(argv: list[str]) -> int:
     translator = QTranslator(qapp)
     if translator.load(QLocale(language()), "qtbase", "_", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
         qapp.installTranslator(translator)
+
+    if args.self_test:
+        return _self_test(qapp)
 
     server = _claim_single_instance()
     if server is None:

@@ -15,7 +15,7 @@
 ![Unofficial](https://img.shields.io/badge/unofficial-not%20by%20Home%20Assistant-lightgrey?style=flat-square)
 
 [![Download](https://img.shields.io/badge/download-RPM-18BCF2?style=for-the-badge&logo=homeassistant&logoColor=white)](../../releases/latest)
-![Fedora](https://img.shields.io/badge/Fedora-44-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
+![Platforms](https://img.shields.io/badge/Windows%20·%20macOS%20·%20Linux-555?style=for-the-badge)
 ![Qt](https://img.shields.io/badge/Qt-PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
 
 <img src="docs/screenshots/en/onboarding.png" width="720" alt="Welcome screen">
@@ -54,17 +54,44 @@ notifications to it with `notify.mobile_app_<name>`.
 
 ## 📦 Install
 
-1. Download the latest `.rpm` file from **[Releases](../../releases/latest)**.
-2. Install it:
-   ```sh
-   sudo dnf install ./ha-desktop-*.noarch.rpm
-   ```
-3. Start **Home Assistant Desktop** from the menu.
+Download the file for your system from **[Releases](../../releases/latest)**:
 
-Uninstall: `sudo dnf remove ha-desktop`
+| System | File | Install |
+|---|---|---|
+| 🪟 **Windows** 10/11 | `…-windows-x64-setup.exe` | Double-click and follow the steps. No admin rights needed. |
+| 🍎 **macOS** Apple Silicon (M1–M4) | `…-macos-arm64.dmg` | Open the dmg and drag the app to *Applications*. |
+| 🍎 **macOS** Intel | `…-macos-x86_64.dmg` | Same. |
+| 🐧 **Ubuntu / Debian / Mint** | `ha-desktop_…_amd64.deb` | `sudo apt install ./ha-desktop_*_amd64.deb` |
+| 🐧 **Fedora** 44 | `ha-desktop-…fc44.noarch.rpm` | `sudo dnf install ./ha-desktop-*.noarch.rpm` |
+| 🐧 **Any Linux** | `…-x86_64.AppImage` | Right-click → *Properties* → *Executable*, then double-click. |
 
 <details>
-<summary><b>Not on Fedora 44?</b> Install from source</summary>
+<summary><b>Windows or macOS shows a warning</b></summary>
+
+<br>
+
+The app is not *signed* (that costs money with Microsoft and Apple), so your system doesn't
+know the publisher.
+
+- **Windows:** at *"Windows protected your PC"* click **More info** → **Run anyway**.
+- **macOS:** open the app once, click **Done**, then go to **System Settings → Privacy &
+  Security**. At the bottom, next to Home Assistant Desktop, click **Open Anyway**.
+  Or in Terminal: `xattr -dr com.apple.quarantine "/Applications/Home Assistant Desktop.app"`
+</details>
+
+<details>
+<summary><b>Linux: notifications and keyring</b></summary>
+
+<br>
+
+Notifications use `notify-send` (package `libnotify-bin` on Debian/Ubuntu, `libnotify` on
+Fedora). The token goes to GNOME Keyring or KWallet. On Ubuntu 24.04+ the web view in the .deb
+and AppImage runs without the Chromium sandbox, because AppArmor blocks it otherwise; the app
+only loads your own server.
+</details>
+
+<details>
+<summary><b>From source</b></summary>
 
 <br>
 

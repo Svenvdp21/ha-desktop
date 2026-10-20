@@ -130,6 +130,18 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(Config.load().server_url, "")
         self.assertTrue((Path(self.tmp.name) / "config.json.bak").exists())
 
+    def test_linux_paths_unchanged(self):
+        """Bestaande Linux-installaties mogen hun instellingen en login nooit kwijtraken."""
+        from unittest import mock
+
+        from ha_desktop import config
+        home = Path.home()
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("XDG_", "HA_DESKTOP_"))}
+        with mock.patch.object(config.sys, "platform", "linux"), mock.patch.dict(os.environ, env, clear=True):
+            self.assertEqual(config.config_dir(), home / ".config/ha-desktop")
+            self.assertEqual(config.data_dir(), home / ".local/share/ha-desktop")
+            self.assertEqual(config.cache_dir(), home / ".cache/ha-desktop")
+
     def test_ws_url_and_target(self):
         self.assertEqual(websocket_url("https://a.b"), "wss://a.b/api/websocket")
         self.assertEqual(websocket_url("http://a:8123"), "ws://a:8123/api/websocket")
