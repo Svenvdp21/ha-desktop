@@ -95,8 +95,24 @@ jobs:
         run: |
           $v = python -c "import ha_desktop; print(ha_desktop.__version__)"
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" packaging\windows\installer.iss
+      # Ondertekenen via SignPath (gratis voor open source). Staat uit tot de repo-variabele
+      # SIGNPATH_ORGANIZATION_ID en het secret SIGNPATH_API_TOKEN zijn ingesteld; zie docs/SIGNING.md.
+      - id: unsigned
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: actions/upload-artifact@v4
+        with: { name: windows-unsigned, path: dist/*.exe }
+      - if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ha-desktop
+          signing-policy-slug: release-signing
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: dist
       - uses: actions/upload-artifact@v4
-        with: { name: windows, path: dist/*.exe }
+        with: { name: windows, path: dist/*.exe, overwrite: true }
 
   macos:
     strategy:
@@ -125,10 +141,17 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: { path: out, merge-multiple: true }
+        with: { path: out, merge-multiple: true, pattern: "{rpm,linux,windows,macos-*}" }
+      - name: Checksums
+        run: cd out && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      # Openbaar, controleerbaar bewijs dat elk bestand door deze workflow is gebouwd.
+      - uses: actions/attest-build-provenance@v2
+        with: { subject-path: "out/*" }
       - name: Release
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |

@@ -61,6 +61,9 @@ desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 
 %changelog
+* Thu Oct 22 2026 Sven <nordicnode26@gmail.com> - 0.4.1-1
+- Checksums en build-attestaties bij elke release
+
 * Tue Oct 20 2026 Sven <nordicnode26@gmail.com> - 0.4.0-1
 - Ook voor Windows, macOS, .deb en AppImage
 

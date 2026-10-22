@@ -14,3 +14,6 @@ warning; see the README for how to continue.
 De Windows- en macOS-versies zijn niet ondertekend; zie de README voor de eerste keer openen.
 
 🤖 Vibecoded: written entirely by AI (Claude). Unofficial, not affiliated with Home Assistant.
+
+🔐 Verify / Controleren: `sha256sum -c SHA256SUMS --ignore-missing` or
+`gh attestation verify <file> --repo Svenvdp21/ha-desktop`

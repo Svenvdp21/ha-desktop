@@ -91,6 +91,25 @@ only loads your own server.
 </details>
 
 <details>
+<summary><b>Verify your download</b></summary>
+
+<br>
+
+Every release includes a `SHA256SUMS` file. Check your download with:
+
+```sh
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+Every file also has a GitHub **build attestation**: proof that it was built by the workflow in
+this repository and not modified afterwards. To verify (with the GitHub CLI):
+
+```sh
+gh attestation verify <file> --repo Svenvdp21/ha-desktop
+```
+</details>
+
+<details>
 <summary><b>From source</b></summary>
 
 <br>

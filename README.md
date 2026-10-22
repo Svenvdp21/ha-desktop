@@ -91,6 +91,25 @@ laadt alleen je eigen server.
 </details>
 
 <details>
+<summary><b>Download controleren</b></summary>
+
+<br>
+
+Bij elke release staat een bestand `SHA256SUMS`. Controleer je download met:
+
+```sh
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+Elk bestand heeft ook een **build-attestatie** van GitHub: bewijs dat het door de workflow in
+deze repository is gebouwd en daarna niet is aangepast. Controleren (met de GitHub CLI):
+
+```sh
+gh attestation verify <bestand> --repo Svenvdp21/ha-desktop
+```
+</details>
+
+<details>
 <summary><b>Vanuit de broncode</b></summary>
 
 <br>
