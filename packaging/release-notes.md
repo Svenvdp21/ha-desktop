@@ -1,3 +1,13 @@
+## ✨ New / Nieuw
+
+**Quick controls:** right-click the icon in the system tray for tiles like in Home Assistant,
+to switch and dim your lights without opening the app. Arrange them yourself under
+*Settings → Quick controls → Design…*.
+
+**Snelbediening:** klik met rechts op het icoon in het systeemvak voor tegels zoals in Home
+Assistant, om je lampen te schakelen en dimmen zonder de app te openen. Deel ze zelf in via
+*Instellingen → Snelbediening → Ontwerpen…*.
+
 ## 📦 Downloads
 
 | System | File |

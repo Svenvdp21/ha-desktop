@@ -165,6 +165,8 @@ data:
 
 ## 💡 Snelbediening
 
+<img align="right" src="docs/screenshots/nl/quick.png" width="340" alt="Snelbediening">
+
 Bedien je lampen zonder het hoofdvenster te openen, met tegels zoals in Home Assistant:
 
 1. Open de instellingen (`Ctrl+,`) en klik bij **Snelbediening** op **Ontwerpen…**

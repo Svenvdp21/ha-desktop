@@ -165,6 +165,8 @@ data:
 
 ## 💡 Quick controls
 
+<img align="right" src="docs/screenshots/en/quick.png" width="340" alt="Quick controls">
+
 Control your lights without opening the main window, with tiles like in Home Assistant:
 
 1. Open the settings (`Ctrl+,`) and click **Design…** under **Quick controls**.
