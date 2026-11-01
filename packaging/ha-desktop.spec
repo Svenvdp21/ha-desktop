@@ -62,6 +62,9 @@ desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 
 %changelog
+* Sun Nov 01 2026 Joerikros <joerikros@outlook.com> - 0.5.0-1
+- Snelbediening: lampen, schakelaars en scènes bedienen met tegels vanuit het systeemvak
+
 * Thu Oct 22 2026 Sven <nordicnode26@gmail.com> - 0.4.1-1
 - Checksums en build-attestaties bij elke release
 
