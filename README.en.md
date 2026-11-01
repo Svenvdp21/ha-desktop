@@ -67,6 +67,21 @@ Download the file for your system from **[Releases](../../releases/latest)**:
 | 🐧 **Any Linux** | `…-x86_64.AppImage` | Right-click → *Properties* → *Executable*, then double-click. |
 
 <details>
+<summary><b>Fedora: add as a repo (automatic updates)</b></summary>
+
+<br>
+
+```sh
+sudo dnf config-manager addrepo --from-repofile=https://svenvdp21.github.io/ha-desktop/ha-desktop.repo
+sudo dnf install ha-desktop
+```
+
+Updates then arrive through `dnf upgrade` or Discover/Software. The packages are signed;
+the first time, dnf asks whether you trust the key (fingerprint
+`8EA3 A1F2 1D6D 751D 4A4B 4E57 555E 1BD8 3947 0668`).
+</details>
+
+<details>
 <summary><b>Windows or macOS shows a warning</b></summary>
 
 <br>

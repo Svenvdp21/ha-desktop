@@ -67,6 +67,21 @@ Download het bestand voor jouw systeem onder **[Releases](../../releases/latest)
 | 🐧 **Elke Linux** | `…-x86_64.AppImage` | Rechtsklik → *Eigenschappen* → *Uitvoerbaar*, dan dubbelklikken. |
 
 <details>
+<summary><b>Fedora: als repo toevoegen (automatische updates)</b></summary>
+
+<br>
+
+```sh
+sudo dnf config-manager addrepo --from-repofile=https://svenvdp21.github.io/ha-desktop/ha-desktop.repo
+sudo dnf install ha-desktop
+```
+
+Daarna komen updates gewoon via `dnf upgrade` of Discover/Software. De pakketten zijn
+ondertekend; dnf vraagt de eerste keer of je de sleutel vertrouwt (vingerafdruk
+`8EA3 A1F2 1D6D 751D 4A4B 4E57 555E 1BD8 3947 0668`).
+</details>
+
+<details>
 <summary><b>Windows of macOS geeft een waarschuwing</b></summary>
 
 <br>

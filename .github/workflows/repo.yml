@@ -1,0 +1,45 @@
+# Publiceert een ondertekende dnf-repo op GitHub Pages met de RPM van de nieuwste release.
+# Draait na een geslaagde release-build, of handmatig (Actions → dnf repo → Run workflow).
+name: dnf repo
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  repo:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v'))
+    runs-on: ubuntu-24.04
+    container: fedora:44
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: dnf install -y createrepo_c rpm-sign gnupg2 gh
+      - name: RPM van de nieuwste release
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release download --repo "$GITHUB_REPOSITORY" --pattern "*.rpm" --dir rpms
+      - name: Sleutel importeren
+        env: { KEY: "${{ secrets.REPO_GPG_PRIVATE_KEY }}" }
+        run: |
+          if [ -z "$KEY" ]; then echo "::error::Secret REPO_GPG_PRIVATE_KEY ontbreekt (zie docs/REPO.md)"; exit 1; fi
+          printf '%s\n' "$KEY" | gpg --batch --import
+      - run: ./packaging/repo/build-repo.sh rpms site
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deploy
+        uses: actions/deploy-pages@v4
