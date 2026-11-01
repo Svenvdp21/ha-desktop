@@ -48,6 +48,7 @@ naartoe met `notify.mobile_app_<naam>`.
 | 🔐 **Blijft ingelogd** | Eén keer inloggen, ook na herstarten. |
 | 🔔 **Meldingen** | Stuur meldingen vanuit automatiseringen naar je pc, net als naar je telefoon. Klik erop en de juiste pagina opent. |
 | 📥 **Systeemvak** | Draait op de achtergrond door, zodat je geen melding mist. Kan meestarten bij inloggen. |
+| 💡 **Snelbediening** | Tegels zoals in Home Assistant, direct vanuit het systeemvak: lampen, schakelaars en scènes bedienen en lampen dimmen. Je ontwerpt zelf de indeling. |
 | 🔒 **Lokaal en veilig** | Meldingen komen rechtstreeks van je eigen server, niet via een cloud. Je token staat in de keyring (KWallet / GNOME Keyring). |
 | 🔁 **Robuust** | Server even weg of laptop uit de slaapstand? De app verbindt vanzelf opnieuw. |
 | 🌍 **Nederlands en Engels** | Volgt de taal van je systeem. |
@@ -162,6 +163,28 @@ data:
 
 <br clear="right">
 
+## 💡 Snelbediening
+
+Bedien je lampen zonder het hoofdvenster te openen, met tegels zoals in Home Assistant:
+
+1. Open de instellingen (`Ctrl+,`) en klik bij **Snelbediening** op **Ontwerpen…**
+2. Links staan al je lampen, schakelaars en scènes; vink aan wat je wilt. Rechts maak je
+   secties (bijvoorbeeld *Woonkamer*, *Keuken*) en sleep je tegels op hun plek. Dubbelklik
+   op een naam of icoon om die te wijzigen; iconen zijn
+   [Material Design Icons](https://pictogrammers.com/library/mdi/) zoals `mdi:sofa`, net als
+   in Home Assistant. **Indelen per ruimte** maakt in één keer een sectie per ruimte.
+3. Klik met rechts op het icoon in het systeemvak: het paneel met tegels verschijnt meteen,
+   met onderin **Openen**, **Instellingen** en **Afsluiten**. Klik op een tegel om te schakelen,
+   sleep opzij over een lamp om te dimmen.
+
+De snelbediening gebruikt hetzelfde token als de meldingen; heb je dat nog niet, plak het dan
+in het ontwerpvenster.
+
+Op Windows en KDE Plasma verschijnt het paneel bij het systeemvak en sluit het als je ernaast
+klikt (op KDE met Wayland via een KWin-script, vanaf Plasma 6). Op macOS en andere desktops,
+zoals GNOME, geeft rechtsklik een gewoon menu; daarin opent **Snelbediening…** het paneel (op
+Wayland als klein los venster).
+
 ## ⌨️ Sneltoetsen
 
 | Toets | Actie |
@@ -253,4 +276,5 @@ delen, met naamsvermelding.
 [Open Home Foundation](https://www.openhomefoundation.org/) of Nabu Casa. De naam Home
 Assistant en het logo zijn merken van de Open Home Foundation, vallen niet onder de
 MIT-licentie en worden hier alleen niet-commercieel gebruikt, om aan te geven waarvoor
-de app bedoeld is.</sub>
+de app bedoeld is. De iconen komen uit [Material Design Icons](https://pictogrammers.com/)
+(Apache 2.0).</sub>

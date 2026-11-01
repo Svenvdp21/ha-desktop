@@ -48,6 +48,7 @@ notifications to it with `notify.mobile_app_<name>`.
 | 🔐 **Stays logged in** | Log in once, even across restarts. |
 | 🔔 **Notifications** | Send notifications from automations to your PC, just like to your phone. Click one and the right page opens. |
 | 📥 **System tray** | Keeps running in the background so you don't miss a notification. Can start at login. |
+| 💡 **Quick controls** | Tiles like in Home Assistant, right from the system tray: switch lights, switches and scenes and dim lights. You design the layout yourself. |
 | 🔒 **Local and secure** | Notifications come straight from your own server, not through a cloud. Your token is stored in the keyring (KWallet / GNOME Keyring). |
 | 🔁 **Robust** | Server briefly down or laptop waking from sleep? The app reconnects by itself. |
 | 🌍 **English and Dutch** | Follows your system language. |
@@ -162,6 +163,28 @@ data:
 
 <br clear="right">
 
+## 💡 Quick controls
+
+Control your lights without opening the main window, with tiles like in Home Assistant:
+
+1. Open the settings (`Ctrl+,`) and click **Design…** under **Quick controls**.
+2. On the left are all your lights, switches and scenes; tick what you want. On the right you
+   create sections (for example *Living room*, *Kitchen*) and drag tiles into place.
+   Double-click a name or icon to change it; icons are
+   [Material Design Icons](https://pictogrammers.com/library/mdi/) like `mdi:sofa`, just as in
+   Home Assistant. **Arrange by area** creates one section per area in one go.
+3. Right-click the icon in the system tray: the panel with tiles appears right away, with
+   **Open**, **Settings** and **Quit** at the bottom. Click a tile to toggle it, drag sideways
+   across a light to dim it.
+
+Quick controls use the same token as notifications; if you don't have one yet, paste it in
+the design window.
+
+On Windows and KDE Plasma the panel appears at the system tray and closes when you click
+outside it (on KDE with Wayland through a KWin script, from Plasma 6). On macOS and other
+desktops, such as GNOME, right-clicking gives a regular menu; **Quick controls…** in it opens
+the panel (on Wayland as a small separate window).
+
 ## ⌨️ Keyboard shortcuts
 
 | Key | Action |
@@ -251,4 +274,5 @@ share it, with attribution.
 <sub>**This is not an official Home Assistant project** and is not affiliated with the
 [Open Home Foundation](https://www.openhomefoundation.org/) or Nabu Casa. The Home Assistant
 name and logo are trademarks of the Open Home Foundation, are not covered by the MIT
-license, and are used here non-commercially only, to indicate what the app is for.</sub>
+license, and are used here non-commercially only, to indicate what the app is for. The icons
+come from [Material Design Icons](https://pictogrammers.com/) (Apache 2.0).</sub>

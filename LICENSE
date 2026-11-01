@@ -26,3 +26,7 @@ The Home Assistant name and logo (ha_desktop/data/com.nordicnode.HADesktop.svg)
 are trademarks of the Open Home Foundation and are NOT covered by this license.
 They are used here for non-commercial purposes only. See
 https://github.com/home-assistant/assets/tree/master/logo
+
+The Material Design Icons font in ha_desktop/data/mdi (@mdi/font 7.4.47 by
+Pictogrammers) is licensed under the Apache License 2.0, see
+ha_desktop/data/mdi/LICENSE and https://www.apache.org/licenses/LICENSE-2.0

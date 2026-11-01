@@ -6,7 +6,8 @@ Release:        1%{?dist}
 Summary:        Unofficial Home Assistant desktop app with notifications
 # Code: MIT. Het meegeleverde logo is een merk van de Open Home Foundation
 # (https://github.com/home-assistant/assets), alleen voor niet-commercieel gebruik.
-License:        MIT
+# Iconenlettertype (ha_desktop/data/mdi): Apache-2.0.
+License:        MIT AND Apache-2.0
 URL:            https://github.com/Svenvdp21/ha-desktop
 Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch

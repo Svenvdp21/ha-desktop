@@ -8,8 +8,8 @@ import logging
 import os
 import sys
 
-from PySide6.QtCore import QLibraryInfo, QLocale, QTimer, QTranslator, Qt
-from PySide6.QtGui import QAction, QKeySequence, QShortcut
+from PySide6.QtCore import QLibraryInfo, QLocale, QRect, QSize, QTimer, QTranslator, Qt
+from PySide6.QtGui import QAction, QCursor, QKeySequence, QShortcut
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import (
     QApplication,
@@ -25,13 +25,15 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ha_desktop import APP_ID, APP_NAME, __version__
+from ha_desktop import APP_ID, APP_NAME, __version__, kwin
 from ha_desktop.config import Config, TokenStore
 from ha_desktop.haapi import HaApi
 from ha_desktop.i18n import _, language
 from ha_desktop.notifier import Notifier, notification_target
 from ha_desktop.onboarding import Onboarding, _card, _title, _wrap
+from ha_desktop.panel import QuickPanel, context_panel
 from ha_desktop.push import PushClient
+from ha_desktop.quick import QuickClient
 from ha_desktop.resources import app_icon
 from ha_desktop.settings import SettingsDialog
 from ha_desktop.webview import HaView, make_profile
@@ -215,6 +217,8 @@ class HaDesktop:
         self.profile = make_profile(qapp)
         self.push = PushClient(self.config)
         self.notifier = Notifier()
+        self.quick = QuickClient(self.config)
+        self._panel: QuickPanel | None = None
         self.tray: QSystemTrayIcon | None = None
 
         self.window = MainWindow(self)
@@ -223,6 +227,7 @@ class HaDesktop:
         self.notifier.clicked.connect(self.open_target)
         self.push.notification.connect(self._on_notification)
         self.push.status_changed.connect(self._on_push_status)
+        self.quick.call_failed.connect(lambda message: self.notifier.show(APP_NAME, message))
         self.profile.setNotificationPresenter(self._present_web_notification)
         if sys.platform == "darwin":
             # Klik op het Dock-icoon: verborgen venster weer tonen.
@@ -231,6 +236,7 @@ class HaDesktop:
         if self.config.is_configured:
             self.window.show_browser()
             self.restart_push()
+            self.restart_quick()
         else:
             self.window.show_onboarding()
 
@@ -244,30 +250,64 @@ class HaDesktop:
             return
         tray = QSystemTrayIcon(app_icon(), self.qapp)
         tray.setToolTip(APP_NAME)
-        menu = QMenu()
-        for text, slot in [(_("Open"), self.show_window), (_("Reload"), self.window.view.reload),
-                           (_("Settings…"), self.open_settings)]:
-            menu.addAction(QAction(text, menu, triggered=slot))
-        menu.addSeparator()
-        menu.addAction(QAction(_("Quit"), menu, triggered=self.quit))
-        tray.setContextMenu(menu)
-        self._tray_menu = menu
+        # Rechtsklik: waar het kan het tegelpaneel (Openen enz. staan daar onderin), anders een menu.
+        # Windows meldt die rechtsklik zelf (activated: Context) en krijgt dus geen menu.
+        if not (context_panel() and sys.platform == "win32"):
+            menu = QMenu()
+            if context_panel():
+                # KDE: Qt geeft de rechtsklik niet door, wel dat het menu open wil. Leeg toont Plasma het niet.
+                menu.aboutToShow.connect(lambda: self.panel.toggle(self._panel_anchor()))
+            else:
+                menu.addAction(QAction(_("Quick controls…"), menu, triggered=self.open_panel))
+                menu.addSeparator()
+                for text, slot in [(_("Open"), self.show_window), (_("Reload"), self.window.view.reload),
+                                   (_("Settings…"), self.open_settings)]:
+                    menu.addAction(QAction(text, menu, triggered=slot))
+                menu.addSeparator()
+                menu.addAction(QAction(_("Quit"), menu, triggered=self.quit))
+            tray.setContextMenu(menu)
+            self._tray_menu = menu
         tray.activated.connect(self._tray_activated)
         tray.show()
         self.tray = tray
 
     def _tray_activated(self, reason) -> None:
-        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+        Reason = QSystemTrayIcon.ActivationReason
+        if reason == Reason.Trigger:
             if self.window.isVisible() and self.window.isActiveWindow():
                 self.window.hide()
             else:
                 self.show_window()
+        elif reason == Reason.Context and self.tray.contextMenu() is None:
+            self.panel.toggle(self._panel_anchor())
 
     def show_window(self) -> None:
         self.window.show()
         self.window.setWindowState(self.window.windowState() & ~Qt.WindowState.WindowMinimized)
         self.window.raise_()
         self.window.activateWindow()
+
+    def _panel_anchor(self) -> QRect:
+        anchor = self.tray.geometry() if self.tray else QRect()
+        if anchor.isEmpty():
+            # Linux-panelen geven de plek van het icoon niet door; de muis staat er vlakbij.
+            anchor = QRect(QCursor.pos(), QSize(1, 1))
+        return anchor
+
+    @property
+    def panel(self) -> QuickPanel:
+        """Pas bij het eerste gebruik gemaakt: dat laadt het iconenlettertype en vraagt KWin om hulp."""
+        if self._panel is None:
+            self._panel = QuickPanel(self.quick)
+            self._panel.open_requested.connect(self.show_window)
+            self._panel.settings_requested.connect(self.open_settings)
+            self._panel.quit_requested.connect(self.quit)
+        return self._panel
+
+    def open_panel(self) -> None:
+        anchor = self._panel_anchor()
+        # Pas tonen als het tray-menu helemaal dicht is, anders sluit de popup meteen weer.
+        QTimer.singleShot(0, lambda: self.panel.popup(anchor))
 
     def open_target(self, target: str) -> None:
         self.show_window()
@@ -284,26 +324,40 @@ class HaDesktop:
         dialog.open_path.connect(self.open_target)
         dialog.notifications_changed.connect(self.restart_push)
         dialog.notifications_changed.connect(self.window.update_banner)
+        dialog.quick_changed.connect(self.restart_quick)
         dialog.exec()
         dialog.deleteLater()
 
     def change_server(self) -> None:
         self.push.stop()
+        self.quick.configure("", "", [])
         self.window.show_onboarding()
 
     def onboarding_finished(self) -> None:
         self.window.show_browser()
         self.restart_push()
+        self.restart_quick()
 
     def quit(self) -> None:
         self.quitting = True
         self.push.stop()
+        self.quick.stop()
+        if self._panel:
+            self._panel.close()
+            kwin.unload()
         self.notifier.close_all()
         # Pagina vóór het profiel opruimen, anders klaagt QtWebEngine.
         self.window.view.setPage(None)
         if self.tray:
             self.tray.hide()
         self.qapp.quit()
+
+    # -- snelbediening -------------------------------------------------------
+
+    def restart_quick(self) -> None:
+        cfg = self.config
+        layout = cfg.quick_layout if cfg.is_configured else []
+        self.quick.configure(cfg.server_url, self.tokens.get(cfg.server_url) if layout else "", layout)
 
     # -- meldingen ------------------------------------------------------------
 
@@ -332,13 +386,14 @@ class HaDesktop:
 
     def _on_app_state(self, state) -> None:
         if (state == Qt.ApplicationState.ApplicationActive and not self.quitting
-                and not self.window.isVisible()):
+                and not self.window.isVisible() and not (self._panel and self._panel.isVisible())):
             self.show_window()
 
     def wake(self) -> None:
         """Aangeroepen als een tweede instantie wordt gestart."""
         self.show_window()
         self.push.reconnect_now()
+        self.quick.reconnect_now()
 
 
 def _claim_single_instance(app: HaDesktop | None = None) -> QLocalServer | None:

@@ -223,6 +223,7 @@ class Onboarding(QWidget):
                 self.config.webhook_id = ""
                 self.config.notifications = False
                 self.config.notif_prompt_dismissed = False
+                self.config.quick_layout = []  # entiteiten van de vorige server
             self.config.server_url = url
             self.config.save()
             self.stack.setCurrentIndex(1)
