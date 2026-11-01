@@ -71,6 +71,15 @@ Download the file for your system from **[Releases](../../releases/latest)**:
 
 <br>
 
+Via **COPR** (recommended; built for Fedora 43, 44, 45 and Rawhide):
+
+```sh
+sudo dnf copr enable svenvdp21/ha-desktop
+sudo dnf install ha-desktop
+```
+
+Or via this project's **own repo** (Fedora 44):
+
 ```sh
 sudo dnf config-manager addrepo --from-repofile=https://svenvdp21.github.io/ha-desktop/ha-desktop.repo
 sudo dnf install ha-desktop

@@ -5,6 +5,8 @@ De repo is er klaar voor: COPR bouwt rechtstreeks uit git met `.copr/Makefile`.
 
 ## Eenmalig instellen
 
+Project: <https://copr.fedorainfracloud.org/coprs/svenvdp21/ha-desktop/> (ingesteld op 1 november 2026).
+
 1. Log in op <https://copr.fedorainfracloud.org/> met je Fedora-account (FAS).
 2. **New Project**, naam `ha-desktop`. Kies de chroots, bijvoorbeeld `fedora-43-x86_64`,
    `fedora-44-x86_64` en `fedora-rawhide-x86_64`. Vink *Internet access during builds* aan
@@ -22,7 +24,7 @@ De repo is er klaar voor: COPR bouwt rechtstreeks uit git met `.copr/Makefile`.
 ## Installeren (voor gebruikers)
 
 ```sh
-sudo dnf copr enable <jouw-fas-naam>/ha-desktop
+sudo dnf copr enable svenvdp21/ha-desktop
 sudo dnf install ha-desktop
 ```
 
