@@ -66,6 +66,8 @@ class Config:
     notif_prompt_dismissed: bool = False
     trusted_hosts: list[str] = field(default_factory=list)
     zoom: float = 1.0
+    # Indeling van de snelbediening: secties met tegels (zie quick.py).
+    quick_layout: list[dict] = field(default_factory=list)
 
     @classmethod
     def load(cls) -> "Config":

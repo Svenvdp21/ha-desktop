@@ -22,13 +22,69 @@ NL = {
         "De integratie 'Mobile App' is niet actief in Home Assistant.",
     "Registration failed (HTTP {status}).": "Registratie mislukt (HTTP {status}).",
     "Unexpected response from Home Assistant.": "Onverwacht antwoord van Home Assistant.",
+    "Home Assistant refused the request: {error}": "Home Assistant weigerde het verzoek: {error}",
 
-    # push
+    # hasocket, push
     "Home Assistant rejected the token. Create a new token.":
         "Token geweigerd door Home Assistant. Maak een nieuw token aan.",
     "Subscribing to notifications failed: {error}. Turn notifications on again to register this device.":
         "Abonneren op meldingen mislukt: {error}. Schakel meldingen opnieuw in om dit apparaat te registreren.",
     "Connection lost; retrying in {delay} s.": "Verbinding verbroken; opnieuw proberen over {delay} s.",
+
+    # quick
+    "Quick controls…": "Snelbediening…",
+    "Quick controls need an access token. Add one in Settings.":
+        "Voor de snelbediening is een toegangstoken nodig. Voeg er een toe in Instellingen.",
+    "Loading quick controls failed: {error}": "Snelbediening laden mislukt: {error}",
+    "Couldn't control {name}: {error}": "Kon {name} niet bedienen: {error}",
+    "unknown error": "onbekende fout",
+    "Unavailable": "Niet beschikbaar",
+    "Scene": "Scène",
+    "Script": "Script",
+    "Running": "Bezig",
+    "Other": "Overig",
+
+    # panel
+    "Quick controls": "Snelbediening",
+    "Quick controls — {app}": "Snelbediening — {app}",
+    "On": "Aan",
+    "Off": "Uit",
+    "Drag sideways to dim": "Sleep opzij om te dimmen",
+    "Close": "Sluiten",
+    "Connecting…": "Verbinden…",
+    "Not connected.": "Niet verbonden.",
+    "Choose in Settings which lights, switches and scenes appear here.":
+        "Kies in Instellingen welke lampen, schakelaars en scènes hier verschijnen.",
+    "The chosen devices weren't found in Home Assistant.":
+        "De gekozen apparaten zijn niet gevonden in Home Assistant.",
+
+    # designer
+    "Design quick controls — {app}": "Snelbediening ontwerpen — {app}",
+    "Devices": "Apparaten",
+    "Layout": "Indeling",
+    "Name": "Naam",
+    "Icon (mdi:…)": "Icoon (mdi:…)",
+    "Drag to reorder. Double-click a name or icon to change it; icons are Material Design Icons "
+    "like <code>mdi:sofa</code>, as in Home Assistant.":
+        "Sleep om de volgorde te wijzigen. Dubbelklik op een naam of icoon om die aan te passen; "
+        "iconen zijn Material Design Icons zoals <code>mdi:sofa</code>, net als in Home Assistant.",
+    "Add section": "Sectie toevoegen",
+    "Up": "Omhoog",
+    "Down": "Omlaag",
+    "Remove": "Verwijderen",
+    "Arrange by area": "Indelen per ruimte",
+    "One section per area in Home Assistant, with all lights, switches and scenes in it.":
+        "Eén sectie per ruimte in Home Assistant, met alle lampen, schakelaars en scènes daarin.",
+    "New section": "Nieuwe sectie",
+    "(no heading)": "(zonder kop)",
+    "Unknown icon": "Onbekend icoon",
+    "Tick a device to add it to the selected section.":
+        "Vink een apparaat aan om het aan de gekozen sectie toe te voegen.",
+    "Replace your current layout with one section per area?":
+        "Je huidige indeling vervangen door één sectie per ruimte?",
+    "Loading areas…": "Ruimtes laden…",
+    "Arranged by area. Remove what you don't need, or drag tiles around.":
+        "Ingedeeld per ruimte. Verwijder wat je niet nodig hebt, of sleep tegels naar een andere plek.",
 
     # notifier
     "Open": "Openen",
@@ -98,6 +154,21 @@ NL = {
         "Bij sluiten op de achtergrond blijven draaien (systeemvak)",
     "Your desktop has no system tray.": "Je bureaublad heeft geen systeemvak.",
     "Start at login (hidden)": "Starten bij inloggen (verborgen)",
+    "Tiles like in Home Assistant for your lights, switches and scenes, right from the system tray.":
+        "Tegels zoals in Home Assistant voor je lampen, schakelaars en scènes, direct vanuit het systeemvak.",
+    "Tiles: {tiles} · Sections: {sections}": "Tegels: {tiles} · Secties: {sections}",
+    "Nothing chosen yet.": "Nog niets gekozen.",
+    "Design…": "Ontwerpen…",
+    "Quick controls use the same access token as notifications; see <i>Notifications</i> in "
+    "Settings for how to create one. Paste it here:":
+        "De snelbediening gebruikt hetzelfde toegangstoken als de meldingen; onder "
+        "<i>Meldingen</i> in Instellingen staat hoe je er een aanmaakt. Plak het hier:",
+    "OK": "OK",
+    "Load devices": "Apparaten laden",
+    "Loading devices…": "Apparaten laden…",
+    "Search…": "Zoeken…",
+    "No lights, switches or scenes found in Home Assistant.":
+        "Geen lampen, schakelaars of scènes gevonden in Home Assistant.",
     "Save": "Opslaan",
     "Cancel": "Annuleren",
     "Off.": "Uitgeschakeld.",

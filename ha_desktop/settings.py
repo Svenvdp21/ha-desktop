@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import os
 import shutil
 import sys
@@ -22,8 +23,10 @@ from PySide6.QtWidgets import (
 
 from ha_desktop import APP_ID, APP_NAME
 from ha_desktop.config import Config, _xdg
+from ha_desktop.designer import LayoutEditor
 from ha_desktop.i18n import N_, _
 from ha_desktop.onboarding import DEVICE_HELP, TOKEN_HELP, TokenForm, _wrap
+from ha_desktop.quick import clean_layout
 
 STATE_TEXT = {
     "connected": ("#2a2", N_("● Connected — notifications are coming in")),
@@ -111,12 +114,14 @@ class SettingsDialog(QDialog):
     change_server = Signal()
     open_path = Signal(str)
     notifications_changed = Signal()
+    # Indeling of token van de snelbediening veranderd.
+    quick_changed = Signal()
 
     def __init__(self, config: Config, api, tokens, push, tray_available: bool, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(_("Settings — {app}").format(app=APP_NAME))
         self.setMinimumWidth(520)
-        self.config, self.tokens, self.push = config, tokens, push
+        self.config, self.api, self.tokens, self.push = config, api, tokens, push
         layout = QVBoxLayout(self)
 
         # Server
@@ -150,6 +155,18 @@ class SettingsDialog(QDialog):
         self.notify_enabled.toggled.connect(self.token_form.setEnabled)
         self.notify_enabled.toggled.connect(lambda _: self._show_status())
         self.token_form.setEnabled(config.notifications)
+
+        # Snelbediening
+        quick = QGroupBox(_("Quick controls"))
+        row = QHBoxLayout(quick)
+        self.quick_label = _wrap("")
+        row.addWidget(self.quick_label, 1)
+        design = QPushButton(_("Design…"))
+        design.clicked.connect(self._design_quick)
+        row.addWidget(design)
+        layout.addWidget(quick)
+        self._quick = copy.deepcopy(config.quick_layout)
+        self._show_quick()
 
         # Venster
         window = QGroupBox(_("Window"))
@@ -194,6 +211,23 @@ class SettingsDialog(QDialog):
         text = f"<span style='color:{color}'>{_(text)}</span>" if color else _(text)
         self.status.setText(text + (f"<br><small>{detail}</small>" if detail else ""))
 
+    def _show_quick(self) -> None:
+        layout = clean_layout(self._quick)
+        tiles = sum(len(section["entities"]) for section in layout)
+        count = (_("Tiles: {tiles} · Sections: {sections}").format(tiles=tiles, sections=len(layout))
+                 if tiles else _("Nothing chosen yet."))
+        self.quick_label.setText(_("Tiles like in Home Assistant for your lights, switches and scenes, "
+                                   "right from the system tray.") + f"<br><b>{count}</b>")
+
+    def _design_quick(self) -> None:
+        editor = LayoutEditor(self.config, self.api, self.tokens, self._quick, self)
+        if editor.exec():
+            self._quick = editor.layout()
+            self._show_quick()
+        if editor.token_saved:
+            self.quick_changed.emit()  # al bewaard, ook als je hierna annuleert
+        editor.deleteLater()
+
     def _open_token_page(self) -> None:
         self.open_path.emit("/profile/security")
         self.reject()
@@ -208,21 +242,30 @@ class SettingsDialog(QDialog):
             self.reject()
             self.change_server.emit()
 
-    def _save(self) -> None:
+    def _apply(self) -> None:
+        """Pas pas toe als opslaan lukt; na een mislukte registratie kun je nog annuleren."""
         self.config.close_to_tray = self.close_to_tray.isChecked()
+        self.config.quick_layout = self._quick
+
+    def _save(self) -> None:
         set_autostart(self.autostart.isChecked())
         if self.notify_enabled.isChecked():
-            # TokenForm registreert indien nodig; _registered sluit daarna het venster.
+            # TokenForm registreert indien nodig; _registered past daarna de rest toe.
             self.token_form.submit()
             return
+        self._apply()
         if self.config.notifications:
             self.config.notifications = False
             self.notifications_changed.emit()
         self.config.save()
+        self.quick_changed.emit()
         self.accept()
 
     def _registered(self) -> None:
+        self._apply()
+        self.config.save()
         self.notifications_changed.emit()
+        self.quick_changed.emit()  # mogelijk ook een nieuw token
         self.accept()
 
     def done(self, result: int) -> None:
