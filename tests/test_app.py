@@ -168,6 +168,15 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(config.data_dir(), home / ".local/share/ha-desktop")
             self.assertEqual(config.cache_dir(), home / ".cache/ha-desktop")
 
+    def test_spec_version_matches(self):
+        """COPR bouwt uit de spec; die moet dezelfde versie hebben als de app."""
+        import re
+
+        from ha_desktop import __version__
+        spec = (PACKAGE.parent / "packaging/ha-desktop.spec").read_text()
+        self.assertEqual(re.search(r"^Version:\s*(\S+)", spec, re.M).group(1), __version__)
+        self.assertIn(f"- {__version__}-1", spec, "changelog-regel voor deze versie ontbreekt")
+
     def test_ws_url_and_target(self):
         self.assertEqual(websocket_url("https://a.b"), "wss://a.b/api/websocket")
         self.assertEqual(websocket_url("http://a:8123"), "ws://a:8123/api/websocket")
@@ -230,6 +239,22 @@ class ServerTests(unittest.TestCase):
         wait_for(self.ha.subscribed, timeout=8000)
         push.stop()
         self.assertEqual(len(received), 1)
+
+    def test_push_retries_while_ha_starts(self):
+        # Vlak na een HA-herstart kent HA mobile_app nog niet; de client moet blijven proberen.
+        self.ha.mobile_app_loaded = False
+        push = PushClient(self.config)
+        _keep.append(push)
+        states = []
+        push.status_changed.connect(lambda state, detail: states.append(state))
+        push.start(self.ha.url, TOKEN, WEBHOOK)
+        while "disconnected" not in states:
+            wait_for(push.status_changed)
+        self.ha.mobile_app_loaded = True
+        while push.state != "connected":
+            wait_for(push.status_changed)
+        self.assertNotIn("error", states)
+        push.stop()
 
     def test_push_bad_token_and_webhook(self):
         push = PushClient(self.config)

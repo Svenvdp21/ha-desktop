@@ -54,6 +54,8 @@ class FakeHA(QObject):
         self.clients: list[QWebSocket] = []
         self.sub_id = 0
         self.registrations: list[dict] = []
+        # False = HA is nog aan het opstarten: mobile_app-commando's bestaan nog niet.
+        self.mobile_app_loaded = True
         self.states = copy.deepcopy(STATES)
         # Abonnementen van subscribe_entities: (websocket, id, entity_ids).
         self.entity_subs: list[tuple[QWebSocket, int, list[str]]] = []
@@ -117,6 +119,9 @@ class FakeHA(QObject):
         if msg["type"] == "auth":
             ok = msg["access_token"] == TOKEN
             ws.sendTextMessage(json.dumps({"type": "auth_ok" if ok else "auth_invalid"}))
+        elif msg["type"].startswith("mobile_app/") and not self.mobile_app_loaded:
+            ws.sendTextMessage(json.dumps({"id": msg["id"], "type": "result", "success": False,
+                                           "error": {"code": "unknown_command", "message": "Unknown command."}}))
         elif msg["type"] == "mobile_app/push_notification_channel":
             ok = msg["webhook_id"] == WEBHOOK and msg.get("support_confirm") is True
             self.sub_id = msg["id"]

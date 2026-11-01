@@ -15,9 +15,7 @@ tar -czf "$TOP/SOURCES/$NAME.tar.gz" -C "$ROOT" \
     --exclude=__pycache__ --transform "s|^|$NAME/|" \
     ha_desktop data README.md README.en.md LICENSE
 
-rpmbuild -bb "$ROOT/packaging/ha-desktop.spec" \
-    --define "_topdir $TOP" \
-    --define "app_version $VERSION"
+rpmbuild -bb "$ROOT/packaging/ha-desktop.spec" --define "_topdir $TOP"
 
 cp "$TOP"/RPMS/noarch/*.rpm "$ROOT/dist/"
 ls -1 "$ROOT"/dist/*.rpm

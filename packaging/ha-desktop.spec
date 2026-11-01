@@ -1,7 +1,8 @@
 %global app_id com.nordicnode.HADesktop
 
 Name:           ha-desktop
-Version:        %{app_version}
+# Houd gelijk aan __version__ in ha_desktop/__init__.py (de tests controleren dat).
+Version:        0.5.1
 Release:        1%{?dist}
 Summary:        Unofficial Home Assistant desktop app with notifications
 # Code: MIT. Het meegeleverde logo is een merk van de Open Home Foundation
@@ -62,6 +63,10 @@ desktop-file-validate "%{buildroot}%{_datadir}/applications/%{app_id}.desktop"
 %{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
 
 %changelog
+* Sun Nov 01 2026 Sven <nordicnode26@gmail.com> - 0.5.1-1
+- Meldingen blijven werken na een herstart van Home Assistant
+- Te bouwen met Fedora COPR
+
 * Sun Nov 01 2026 Joerikros <joerikros@outlook.com> - 0.5.0-1
 - Snelbediening: lampen, schakelaars en scènes bedienen met tegels vanuit het systeemvak
 

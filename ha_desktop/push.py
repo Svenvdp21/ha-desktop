@@ -7,11 +7,15 @@ Protocol (zelfde aanpak als joshuar/go-hass-agent):
 
 from __future__ import annotations
 
+import logging
+
 from PySide6.QtCore import QObject, Signal
 
 from ha_desktop.config import Config
 from ha_desktop.hasocket import HaSocket
 from ha_desktop.i18n import _
+
+log = logging.getLogger(__name__)
 
 
 class PushClient(HaSocket):
@@ -39,7 +43,15 @@ class PushClient(HaSocket):
             if msg.get("success"):
                 self._subscribed()
             else:
-                err = (msg.get("error") or {}).get("message") or _("unknown error")
+                error = msg.get("error") or {}
+                if error.get("code") == "unknown_command":
+                    # Vlak na een herstart accepteert HA de websocket al voordat mobile_app geladen is.
+                    # Tijdelijk: sluiten en via de gewone backoff opnieuw proberen.
+                    log.info("mobile_app nog niet geladen; opnieuw proberen")
+                    if self._ws:
+                        self._ws.close()
+                    return
+                err = error.get("message") or _("unknown error")
                 self._fail(_("Subscribing to notifications failed: {error}. Turn notifications "
                              "on again to register this device.").format(error=err))
         elif kind == "event" and msg.get("id") == self._sub_id:
